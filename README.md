@@ -12,11 +12,12 @@ this is for.
 
 ## Status
 
-🚧 **Early scaffolding (M0).** No algorithms are implemented yet — this
-repository currently holds validation utilities, metrics, preprocessing
-transforms, dataset generators, and the gradient-checking test tool that
-every future backward pass will be verified against. See
-[`ROADMAP.md`](ROADMAP.md) for what's planned and in what order, and
+🚧 **M1 in progress.** The M0 foundation is in place (validation utilities,
+metrics, preprocessing transforms, dataset generators, and the
+gradient-checking test tool). M1 adds the classical supervised algorithms
+one at a time — `LinearRegression` is the first and is implemented; see the
+table below. See [`ROADMAP.md`](ROADMAP.md) for what's planned and in what
+order, and
 [`plan.md`](plan.md) for the full project plan (architecture, testing
 strategy, conventions, and the mistakes it's deliberately avoiding).
 
@@ -50,15 +51,26 @@ uv run pytest -q             # tests
 ```
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full workflow, including
-the derivation-before-code process every algorithm goes through. This
-project is early-stage and currently solo-maintained — open an issue
-before sending a PR if you'd like to help.
+the derivation-before-code process every algorithm goes through.
+Contributions are welcome — pick anything unchecked in
+[`ROADMAP.md`](ROADMAP.md), or open an issue or PR with an idea. New
+collaborators are welcome too; if you'd like to help maintain the project,
+just reach out.
 
 ## Algorithms
 
-_None yet — this table fills in one row per algorithm as each ships,
-starting at M1. See [`ROADMAP.md`](ROADMAP.md)._
+One row per algorithm as each ships. See [`ROADMAP.md`](ROADMAP.md) for
+what's planned next.
+
+| Algorithm        | Module               | Derivation                                                    | Notes                                           |
+| ---------------- | -------------------- | ------------------------------------------------------------- | ----------------------------------------------- |
+| LinearRegression | `scratchgrad.linear` | [linear_regression.md](docs/derivations/linear_regression.md) | OLS; normal equation and batch gradient descent |
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE). Maintained by **Niyaf Mukhthaar**.
+MIT — see [`LICENSE`](LICENSE). Free to use, copy, modify, and redistribute,
+for any purpose, including commercially. Use it in your own projects, fork
+it, teach from it — no permission needed.
+
+Started and maintained by **Niyaf Mukhthaar**. Open to anyone who wants
+to join in and build it out.
