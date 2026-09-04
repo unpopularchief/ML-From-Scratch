@@ -15,8 +15,8 @@ this is for.
 🚧 **M1 in progress.** The M0 foundation is in place (validation utilities,
 metrics, preprocessing transforms, dataset generators, and the
 gradient-checking test tool). M1 adds the classical supervised algorithms
-one at a time — `LinearRegression` is the first and is implemented; see the
-table below. See [`ROADMAP.md`](ROADMAP.md) for what's planned and in what
+one at a time — `LinearRegression` and `Ridge` are implemented so far; see
+the table below. See [`ROADMAP.md`](ROADMAP.md) for what's planned and in what
 order, and
 [`plan.md`](plan.md) for the full project plan (architecture, testing
 strategy, conventions, and the mistakes it's deliberately avoiding).
@@ -62,9 +62,10 @@ just reach out.
 One row per algorithm as each ships. See [`ROADMAP.md`](ROADMAP.md) for
 what's planned next.
 
-| Algorithm        | Module               | Derivation                                                    | Notes                                           |
-| ---------------- | -------------------- | ------------------------------------------------------------- | ----------------------------------------------- |
-| LinearRegression | `scratchgrad.linear` | [linear_regression.md](docs/derivations/linear_regression.md) | OLS; normal equation and batch gradient descent |
+| Algorithm        | Module               | Derivation                                                    | Notes                                                    |
+| ---------------- | -------------------- | ------------------------------------------------------------- | ------------------------------------------------------- |
+| LinearRegression | `scratchgrad.linear` | [linear_regression.md](docs/derivations/linear_regression.md) | OLS; normal equation and batch gradient descent         |
+| Ridge            | `scratchgrad.linear` | [ridge.md](docs/derivations/ridge.md)                         | L2-penalised least squares; regularised normal equation and gradient descent |
 
 ## License
 

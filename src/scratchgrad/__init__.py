@@ -4,8 +4,8 @@ The public API is curated here as each algorithm lands (see ROADMAP.md for
 progress); nothing is exported from this file until it exists.
 """
 
-from scratchgrad.linear import LinearRegression
+from scratchgrad.linear import LinearRegression, Ridge
 
 __version__ = "0.0.1"
 
-__all__ = ["LinearRegression"]
+__all__ = ["LinearRegression", "Ridge"]

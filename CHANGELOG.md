@@ -10,6 +10,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   solvers (`"normal"`: normal equation via SVD least-squares; `"gd"`: batch
   gradient descent). First M1 algorithm. Derivation:
   `docs/derivations/linear_regression.md`; example: `examples/linear_regression.py`.
+- `scratchgrad.linear.Ridge` — L2-penalised least squares with two solvers
+  (`"normal"`: regularised normal equation via `np.linalg.solve`; `"gd"`:
+  batch gradient descent). `alpha` matches `sklearn.linear_model.Ridge`;
+  `alpha=0` reduces to `LinearRegression`. Derivation:
+  `docs/derivations/ridge.md`; example: `examples/ridge.py`.
 - `tests/reference/` and `.github/workflows/reference.yml` (manual trigger):
   opt-in scikit-learn parity tests, run with `pytest -m reference`.
 - Repository scaffold: `pyproject.toml`, `.gitattributes`, `.gitignore`, `LICENSE` (MIT).
