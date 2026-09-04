@@ -6,6 +6,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.linear.LinearRegression` — ordinary least squares with two
+  solvers (`"normal"`: normal equation via SVD least-squares; `"gd"`: batch
+  gradient descent). First M1 algorithm. Derivation:
+  `docs/derivations/linear_regression.md`; example: `examples/linear_regression.py`.
+- `tests/reference/` and `.github/workflows/reference.yml` (manual trigger):
+  opt-in scikit-learn parity tests, run with `pytest -m reference`.
 - Repository scaffold: `pyproject.toml`, `.gitattributes`, `.gitignore`, `LICENSE` (MIT).
 - `scratchgrad.base.Estimator`, `scratchgrad.typing`, `scratchgrad.exceptions`.
 - `scratchgrad.utils`: input validation (`check_X_y`, `check_array`, `check_is_fitted`,
@@ -23,8 +29,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - CI (`.github/workflows/ci.yml`), pre-commit config, PR template.
 - Project documentation: `README.md`, `plan.md`, `ROADMAP.md`, `CONTRIBUTING.md`,
   `docs/conventions.md`.
-
-No algorithms yet — this is the M0 foundation milestone.
 
 <!-- Repo: https://github.com/unpopularchief/ML-From-Scratch
      [Unreleased] compare link added once the first commit/tag exists. -->

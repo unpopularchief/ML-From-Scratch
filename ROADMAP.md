@@ -15,20 +15,20 @@ Progress tracker for `plan.md` §7. Milestones happen in order — see
 - [x] `tests/helpers/gradcheck.py` — the finite-difference gradient checker
 - [x] CI (`ci.yml`), pre-commit, PR template
 - [x] `README.md`, `docs/conventions.md`, `CONTRIBUTING.md`, `CHANGELOG.md`
-- [ ] Green CI on a pushed commit (pending: this is committed/pushed by the repo owner)
+- [x] Green CI on a pushed commit (`97526d8`, `e01ebf3` — both green on ubuntu + windows)
 
 No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 
 ## M1 — Classical supervised (`v0.1.0`)
 
-- [ ] LinearRegression (normal equation + gradient descent)
+- [x] LinearRegression (normal equation + gradient descent)
 - [ ] Ridge
 - [ ] Lasso (coordinate descent)
 - [ ] LogisticRegression
 - [ ] KNN
 - [ ] GaussianNB
 - [ ] DecisionTree (CART: gini/entropy/MSE)
-- [ ] `[reference]` extra + `reference.yml` added (scikit-learn parity tests)
+- [x] `[reference]` extra + `reference.yml` added (scikit-learn parity tests)
 
 **MVP** = M0 + LinearRegression + LogisticRegression + KNN + one example + green CI.
 
