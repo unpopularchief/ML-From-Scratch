@@ -22,7 +22,7 @@ No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 ## M1 — Classical supervised (`v0.1.0`)
 
 - [x] LinearRegression (normal equation + gradient descent)
-- [ ] Ridge
+- [x] Ridge (regularised normal equation + gradient descent)
 - [ ] Lasso (coordinate descent)
 - [ ] LogisticRegression
 - [ ] KNN
