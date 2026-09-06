@@ -24,7 +24,7 @@ No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 - [x] LinearRegression (normal equation + gradient descent)
 - [x] Ridge (regularised normal equation + gradient descent)
 - [x] Lasso (coordinate descent)
-- [ ] LogisticRegression
+- [x] LogisticRegression (binary; Newton/IRLS + gradient descent)
 - [ ] KNN
 - [ ] GaussianNB
 - [ ] DecisionTree (CART: gini/entropy/MSE)
