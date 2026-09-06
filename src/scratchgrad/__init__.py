@@ -5,7 +5,14 @@ progress); nothing is exported from this file until it exists.
 """
 
 from scratchgrad.linear import Lasso, LinearRegression, LogisticRegression, Ridge
+from scratchgrad.neighbors import KNeighborsClassifier
 
 __version__ = "0.0.1"
 
-__all__ = ["Lasso", "LinearRegression", "LogisticRegression", "Ridge"]
+__all__ = [
+    "KNeighborsClassifier",
+    "Lasso",
+    "LinearRegression",
+    "LogisticRegression",
+    "Ridge",
+]
