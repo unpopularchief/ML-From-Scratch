@@ -21,6 +21,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   (objective scaled by `1 / (2 * n_samples)`); `alpha=0` reduces to
   `LinearRegression`. Derivation: `docs/derivations/lasso.md`; example:
   `examples/lasso.py`.
+- `scratchgrad.linear.LogisticRegression` — binary logistic regression by
+  Bernoulli maximum likelihood (mean cross-entropy loss) with an optional L2
+  penalty. Two iterative solvers: `"newton"` (Newton–Raphson / IRLS, the
+  default — quadratic convergence, no learning rate) and `"gd"` (batch
+  gradient descent). `C` matches `sklearn.linear_model.LogisticRegression`;
+  `penalty=None` fits the unregularised MLE. `predict_proba`,
+  `decision_function`, `score` = accuracy. Derivation:
+  `docs/derivations/logistic_regression.md`; example:
+  `examples/logistic_regression.py`.
 - `tests/reference/` and `.github/workflows/reference.yml` (manual trigger):
   opt-in scikit-learn parity tests, run with `pytest -m reference`.
 - Repository scaffold: `pyproject.toml`, `.gitattributes`, `.gitignore`, `LICENSE` (MIT).
