@@ -15,8 +15,9 @@ this is for.
 🚧 **M1 in progress.** The M0 foundation is in place (validation utilities,
 metrics, preprocessing transforms, dataset generators, and the
 gradient-checking test tool). M1 adds the classical supervised algorithms
-one at a time — `LinearRegression`, `Ridge`, `Lasso`, and
-`LogisticRegression` are implemented so far; see the table below. See [`ROADMAP.md`](ROADMAP.md) for what's planned and in what
+one at a time — `LinearRegression`, `Ridge`, `Lasso`,
+`LogisticRegression`, and `KNeighborsClassifier` are implemented so far;
+see the table below. See [`ROADMAP.md`](ROADMAP.md) for what's planned and in what
 order, and
 [`plan.md`](plan.md) for the full project plan (architecture, testing
 strategy, conventions, and the mistakes it's deliberately avoiding).
@@ -68,6 +69,7 @@ what's planned next.
 | Ridge            | `scratchgrad.linear` | [ridge.md](docs/derivations/ridge.md)                         | L2-penalised least squares; regularised normal equation and gradient descent |
 | Lasso            | `scratchgrad.linear` | [lasso.md](docs/derivations/lasso.md)                         | L1-penalised least squares; cyclic coordinate descent with soft-thresholding |
 | LogisticRegression | `scratchgrad.linear` | [logistic_regression.md](docs/derivations/logistic_regression.md) | Binary; Bernoulli MLE / cross-entropy; Newton–Raphson (IRLS) and gradient descent |
+| KNeighborsClassifier | `scratchgrad.neighbors` | [knn.md](docs/derivations/knn.md) | Lazy k-NN vote; brute-force distances; uniform or 1/d weighting; Bayes-consistent |
 
 ## License
 

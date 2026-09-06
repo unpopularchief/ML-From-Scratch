@@ -30,6 +30,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `decision_function`, `score` = accuracy. Derivation:
   `docs/derivations/logistic_regression.md`; example:
   `examples/logistic_regression.py`.
+- `scratchgrad.neighbors.KNeighborsClassifier` — lazy k-nearest-neighbours
+  classification. `fit` memorises the data; `predict` builds the full
+  distance matrix by brute force (no KD-/ball-tree), takes the `k` nearest,
+  and votes. `metric` in `{"euclidean", "manhattan"}`, `weights` in
+  `{"uniform", "distance"}` (1/d, with an exact-hit rule). `predict_proba`,
+  `kneighbors`, `score` = accuracy; multiclass. First `scratchgrad.neighbors`
+  algorithm. Derivation: `docs/derivations/knn.md`; example: `examples/knn.py`.
 - `tests/reference/` and `.github/workflows/reference.yml` (manual trigger):
   opt-in scikit-learn parity tests, run with `pytest -m reference`.
 - Repository scaffold: `pyproject.toml`, `.gitattributes`, `.gitignore`, `LICENSE` (MIT).
