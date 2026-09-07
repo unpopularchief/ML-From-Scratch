@@ -37,6 +37,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `{"uniform", "distance"}` (1/d, with an exact-hit rule). `predict_proba`,
   `kneighbors`, `score` = accuracy; multiclass. First `scratchgrad.neighbors`
   algorithm. Derivation: `docs/derivations/knn.md`; example: `examples/knn.py`.
+- `scratchgrad.naive_bayes.GaussianNB` — Gaussian naive Bayes, a generative
+  classifier fitted by a single closed-form maximum-likelihood pass (per-class,
+  per-feature mean and biased variance, plus class priors). Prediction is done
+  in log-space: `predict` takes the argmax of the joint log-likelihood,
+  `predict_proba` / `predict_log_proba` normalise it with `logsumexp`.
+  `var_smoothing` adds `var_smoothing * max_j Var[X[:, j]]` to every variance;
+  `priors` overrides the MLE class frequencies. Multiclass; matches
+  `sklearn.naive_bayes.GaussianNB`. First `scratchgrad.naive_bayes` algorithm.
+  Derivation: `docs/derivations/gaussian_nb.md`; example:
+  `examples/gaussian_nb.py`.
 - `tests/reference/` and `.github/workflows/reference.yml` (manual trigger):
   opt-in scikit-learn parity tests, run with `pytest -m reference`.
 - Repository scaffold: `pyproject.toml`, `.gitattributes`, `.gitignore`, `LICENSE` (MIT).

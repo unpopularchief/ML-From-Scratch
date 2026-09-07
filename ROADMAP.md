@@ -26,7 +26,7 @@ No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 - [x] Lasso (coordinate descent)
 - [x] LogisticRegression (binary; Newton/IRLS + gradient descent)
 - [x] KNN (KNeighborsClassifier; brute-force, uniform/distance weights)
-- [ ] GaussianNB
+- [x] GaussianNB (closed-form MLE; log-space posterior; `var_smoothing`)
 - [ ] DecisionTree (CART: gini/entropy/MSE)
 - [x] `[reference]` extra + `reference.yml` added (scikit-learn parity tests)
 
