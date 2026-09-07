@@ -27,7 +27,7 @@ No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 - [x] LogisticRegression (binary; Newton/IRLS + gradient descent)
 - [x] KNN (KNeighborsClassifier; brute-force, uniform/distance weights)
 - [x] GaussianNB (closed-form MLE; log-space posterior; `var_smoothing`)
-- [ ] DecisionTree (CART: gini/entropy/MSE)
+- [x] DecisionTree (`DecisionTreeClassifier`; CART, gini/entropy, greedy splits)
 - [x] `[reference]` extra + `reference.yml` added (scikit-learn parity tests)
 
 **MVP** = M0 + LinearRegression + LogisticRegression + KNN + one example + green CI.
