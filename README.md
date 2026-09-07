@@ -16,8 +16,8 @@ this is for.
 metrics, preprocessing transforms, dataset generators, and the
 gradient-checking test tool). M1 adds the classical supervised algorithms
 one at a time — `LinearRegression`, `Ridge`, `Lasso`,
-`LogisticRegression`, `KNeighborsClassifier`, and `GaussianNB` are
-implemented so far; see the table below. See [`ROADMAP.md`](ROADMAP.md) for what's planned and in what
+`LogisticRegression`, `KNeighborsClassifier`, `GaussianNB`, and
+`DecisionTreeClassifier` are implemented so far; see the table below. See [`ROADMAP.md`](ROADMAP.md) for what's planned and in what
 order, and
 [`plan.md`](plan.md) for the full project plan (architecture, testing
 strategy, conventions, and the mistakes it's deliberately avoiding).
@@ -71,6 +71,7 @@ what's planned next.
 | LogisticRegression | `scratchgrad.linear` | [logistic_regression.md](docs/derivations/logistic_regression.md) | Binary; Bernoulli MLE / cross-entropy; Newton–Raphson (IRLS) and gradient descent |
 | KNeighborsClassifier | `scratchgrad.neighbors` | [knn.md](docs/derivations/knn.md) | Lazy k-NN vote; brute-force distances; uniform or 1/d weighting; Bayes-consistent |
 | GaussianNB | `scratchgrad.naive_bayes` | [gaussian_nb.md](docs/derivations/gaussian_nb.md) | Generative classifier; closed-form MLE means/variances; log-space posterior; `var_smoothing` floor |
+| DecisionTreeClassifier | `scratchgrad.tree` | [decision_tree.md](docs/derivations/decision_tree.md) | CART; greedy binary splits on gini/entropy impurity decrease; `max_depth` / `min_samples_*` / `min_impurity_decrease` |
 
 ## License
 

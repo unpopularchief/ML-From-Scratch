@@ -7,10 +7,12 @@ progress); nothing is exported from this file until it exists.
 from scratchgrad.linear import Lasso, LinearRegression, LogisticRegression, Ridge
 from scratchgrad.naive_bayes import GaussianNB
 from scratchgrad.neighbors import KNeighborsClassifier
+from scratchgrad.tree import DecisionTreeClassifier
 
 __version__ = "0.0.1"
 
 __all__ = [
+    "DecisionTreeClassifier",
     "GaussianNB",
     "KNeighborsClassifier",
     "Lasso",

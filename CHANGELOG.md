@@ -47,6 +47,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `sklearn.naive_bayes.GaussianNB`. First `scratchgrad.naive_bayes` algorithm.
   Derivation: `docs/derivations/gaussian_nb.md`; example:
   `examples/gaussian_nb.py`.
+- `scratchgrad.tree.DecisionTreeClassifier` — a CART decision tree grown by
+  greedy recursive binary partitioning. Each node takes the `(feature,
+  threshold)` split that maximises the impurity decrease, with impurity
+  measured by `criterion="gini"` (`1 - sum p_k^2`) or `"entropy"` (Shannon
+  entropy in bits). Thresholds are midpoints between adjacent distinct
+  feature values; ties are broken deterministically (lowest feature index,
+  then lowest threshold). Recursion stops at `max_depth`,
+  `min_samples_split`, a pure node, or when no split clears
+  `min_impurity_decrease` (scaled as `n_t / n * delta_H`, matching
+  scikit-learn). `predict_proba` returns the leaf's class-frequency vector;
+  `feature_importances_` is the normalised total impurity decrease per
+  feature. Multiclass; matches `sklearn.tree.DecisionTreeClassifier`. No
+  cost-complexity pruning or feature subsampling (`DecisionTreeRegressor`
+  and `max_features` are later additions). First `scratchgrad.tree`
+  algorithm; finishes M1. Derivation: `docs/derivations/decision_tree.md`;
+  example: `examples/decision_tree.py`.
 - `tests/reference/` and `.github/workflows/reference.yml` (manual trigger):
   opt-in scikit-learn parity tests, run with `pytest -m reference`.
 - Repository scaffold: `pyproject.toml`, `.gitattributes`, `.gitignore`, `LICENSE` (MIT).
