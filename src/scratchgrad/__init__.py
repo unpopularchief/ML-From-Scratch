@@ -4,6 +4,7 @@ The public API is curated here as each algorithm lands (see ROADMAP.md for
 progress); nothing is exported from this file until it exists.
 """
 
+from scratchgrad.ensemble import RandomForestClassifier
 from scratchgrad.linear import Lasso, LinearRegression, LogisticRegression, Ridge
 from scratchgrad.naive_bayes import GaussianNB
 from scratchgrad.neighbors import KNeighborsClassifier
@@ -18,5 +19,6 @@ __all__ = [
     "Lasso",
     "LinearRegression",
     "LogisticRegression",
+    "RandomForestClassifier",
     "Ridge",
 ]

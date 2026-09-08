@@ -6,6 +6,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.ensemble.RandomForestClassifier` — a random forest: an
+  ensemble of `DecisionTreeClassifier`s, each grown on a bootstrap
+  resample of the rows and drawing a random `max_features` subset
+  (default `"sqrt"`) at every split. Prediction averages the trees'
+  class-probability vectors (soft voting). `bootstrap` and `oob_score`
+  are exposed; with `oob_score=True` the out-of-bag rows give
+  `oob_score_` / `oob_decision_function_` for free. `random_state` seeds
+  an independent `Generator` per tree, so the forest is reproducible.
+  Trees are built serially (no `n_jobs`). Multiclass; held-out accuracy
+  and OOB score track `sklearn.ensemble.RandomForestClassifier` to a
+  tolerance (the RNG streams differ, so predictions are not exact). First
+  `scratchgrad.ensemble` algorithm; first M2 algorithm. Derivation:
+  `docs/derivations/random_forest.md`; example: `examples/random_forest.py`.
 - `scratchgrad.tree.DecisionTreeClassifier` gains `max_features` (per-node
   feature subsampling — `"sqrt"`, `"log2"`, an int, a float fraction, or
   `None`) and `random_state` (seeds that draw), plus the resolved
