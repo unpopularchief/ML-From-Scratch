@@ -18,7 +18,12 @@ from scratchgrad.exceptions import NotFittedError
 from scratchgrad.linear import LogisticRegression
 from scratchgrad.preprocessing import train_test_split
 from scratchgrad.tree import DecisionTreeClassifier
-from scratchgrad.tree.decision_tree import _best_split, _entropy, _gini
+from scratchgrad.tree.decision_tree import (
+    _best_split,
+    _entropy,
+    _gini,
+    _resolve_max_features,
+)
 
 
 def _counts(y: np.ndarray, n_classes: int) -> np.ndarray:
@@ -99,6 +104,12 @@ def _leaves(node):
     return [node] if node.is_leaf else _leaves(node.left) + _leaves(node.right)
 
 
+def _all_nodes(node):
+    if node.is_leaf:
+        return [node]
+    return [node] + _all_nodes(node.left) + _all_nodes(node.right)
+
+
 def _tree_equal(a, b):
     if a.is_leaf or b.is_leaf:
         return a.is_leaf and b.is_leaf and np.allclose(a.value, b.value)
@@ -175,6 +186,81 @@ class TestDeterminism:
         a = DecisionTreeClassifier().fit(X, y)
         b = DecisionTreeClassifier().fit(X, y)
         assert _tree_equal(a.tree_, b.tree_)
+
+    def test_seeded_run_is_reproducible(self) -> None:
+        X, y = make_blobs(n_samples=200, n_features=6, centers=3, random_state=0)
+        a = DecisionTreeClassifier(max_features="sqrt", random_state=7).fit(X, y)
+        b = DecisionTreeClassifier(max_features="sqrt", random_state=7).fit(X, y)
+        assert _tree_equal(a.tree_, b.tree_)
+
+    def test_different_seed_generally_differs(self) -> None:
+        X, y = make_blobs(n_samples=200, n_features=6, centers=3, random_state=0)
+        a = DecisionTreeClassifier(max_features=2, random_state=1).fit(X, y)
+        b = DecisionTreeClassifier(max_features=2, random_state=2).fit(X, y)
+        assert not _tree_equal(a.tree_, b.tree_)
+
+
+class TestFeatureSubsampling:
+    @pytest.mark.parametrize(
+        ("max_features", "n_features", "expected"),
+        [
+            (None, 10, 10),
+            ("sqrt", 9, 3),
+            ("sqrt", 10, 3),
+            ("log2", 8, 3),
+            ("log2", 10, 3),
+            (4, 10, 4),
+            (1, 3, 1),
+            (0.5, 10, 5),
+            (0.25, 10, 2),
+            (0.01, 10, 1),  # clamped up to 1
+            (1.0, 7, 7),
+        ],
+    )
+    def test_resolution(self, max_features, n_features, expected) -> None:
+        assert _resolve_max_features(max_features, n_features) == expected
+
+    @pytest.mark.parametrize(
+        "bad",
+        ["auto", "SQRT", 0, -1, 11, 0.0, -0.5, 1.5, True, [3], "0.5"],
+    )
+    def test_bad_max_features_raises(self, bad) -> None:
+        X, y = make_blobs(n_samples=30, n_features=10, centers=2, random_state=0)
+        with pytest.raises(ValueError, match="max_features"):
+            DecisionTreeClassifier(max_features=bad).fit(X, y)
+
+    def test_none_with_a_seed_matches_the_deterministic_tree(self) -> None:
+        # max_features=None draws nothing that changes the result: a drawn
+        # permutation only reorders the sweep, and tie-breaking is by feature
+        # index regardless of order, so the tree is identical either way.
+        X, y = make_blobs(n_samples=150, n_features=5, centers=3, random_state=0)
+        plain = DecisionTreeClassifier().fit(X, y)
+        seeded = DecisionTreeClassifier(random_state=123).fit(X, y)
+        assert _tree_equal(plain.tree_, seeded.tree_)
+
+    def test_resolved_attribute_is_exposed(self) -> None:
+        X, y = make_blobs(n_samples=40, n_features=9, centers=2, random_state=0)
+        model = DecisionTreeClassifier(max_features="sqrt").fit(X, y)
+        assert model.max_features_ == 3
+
+    def test_every_realised_split_is_on_a_present_feature(self) -> None:
+        # sanity: a subsampled tree still only splits on real feature indices
+        X, y = make_blobs(n_samples=200, n_features=8, centers=3, random_state=1)
+        model = DecisionTreeClassifier(max_features=3, random_state=0).fit(X, y)
+        internal = [n for n in _all_nodes(model.tree_) if not n.is_leaf]
+        assert internal  # it did split
+        assert all(0 <= n.feature < 8 for n in internal)
+
+    def test_max_features_one_still_fits_separable_data(self) -> None:
+        X, y = make_blobs(n_samples=200, n_features=4, centers=3, random_state=0)
+        model = DecisionTreeClassifier(max_features=1, random_state=0).fit(X, y)
+        assert model.score(X, y) > 0.95  # enough depth + redraws to separate
+
+    def test_subsampling_does_not_touch_the_default_path(self) -> None:
+        X, y = make_blobs(n_samples=120, centers=3, cluster_std=2.0, random_state=0)
+        before = DecisionTreeClassifier().fit(X, y)
+        after = DecisionTreeClassifier(max_features=None, random_state=None).fit(X, y)
+        assert _tree_equal(before.tree_, after.tree_)
 
 
 class TestRegularizers:
@@ -263,6 +349,8 @@ class TestContract:
             "min_samples_split": 5,
             "min_samples_leaf": 2,
             "min_impurity_decrease": 0.01,
+            "max_features": None,
+            "random_state": None,
         }
 
     def test_predict_rejects_wrong_feature_count(self) -> None:
@@ -305,7 +393,8 @@ class TestContract:
     def test_repr_round_trips(self) -> None:
         assert repr(DecisionTreeClassifier()) == (
             "DecisionTreeClassifier(criterion='gini', max_depth=None, "
-            "min_samples_split=2, min_samples_leaf=1, min_impurity_decrease=0.0)"
+            "min_samples_split=2, min_samples_leaf=1, min_impurity_decrease=0.0, "
+            "max_features=None, random_state=None)"
         )
 
 

@@ -6,6 +6,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.tree.DecisionTreeClassifier` gains `max_features` (per-node
+  feature subsampling — `"sqrt"`, `"log2"`, an int, a float fraction, or
+  `None`) and `random_state` (seeds that draw), plus the resolved
+  `max_features_` attribute. With the `None` defaults a fitted tree is
+  byte-identical to the `0.1.0` estimator; the knobs exist so
+  `RandomForest` (M2) can decorrelate its trees. Derivation:
+  `docs/derivations/decision_tree.md` §3a.
+
+## [0.1.0] — 2026-09-07
+
+### Added
+
 - `scratchgrad.linear.LinearRegression` — ordinary least squares with two
   solvers (`"normal"`: normal equation via SVD least-squares; `"gd"`: batch
   gradient descent). First M1 algorithm. Derivation:

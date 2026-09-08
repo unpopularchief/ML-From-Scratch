@@ -54,6 +54,16 @@ def main() -> None:
     importances = ", ".join(f"{v:.3f}" for v in model.feature_importances_)
     print(f"\nfeature_importances_ = [{importances}]")
 
+    # Feature subsampling (max_features): each node only sees a random subset
+    # of the features. On its own it adds variance to a single tree; its real
+    # job is to decorrelate the trees of a random forest.
+    print("\nmax_features=1, three seeds (test accuracy)")
+    for seed in (0, 1, 2):
+        sub = DecisionTreeClassifier(
+            max_depth=8, max_features=1, random_state=seed
+        ).fit(X_train, y_train)
+        print(f"  random_state={seed}  test acc={sub.score(X_test, y_test):.4f}")
+
 
 if __name__ == "__main__":
     main()

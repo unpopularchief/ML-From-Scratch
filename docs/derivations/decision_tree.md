@@ -23,6 +23,7 @@ rather than optimisation.
 | $p_{tk}$ | scalar | class-$k$ fraction in $t$: $p_{tk} = \frac{1}{\lvert S_t\rvert}\sum_{i \in S_t}\mathbb{1}[y_i = k]$ |
 | $(j, \tau)$ | — | a split: feature $j$, threshold $\tau$; $x$ goes left iff $x_j \le \tau$ |
 | $H(t)$ | scalar | impurity of node $t$ |
+| $m$ | scalar | `max_features` — candidate features drawn per node, $m \le d$ |
 
 CART grows a **binary** tree. Every internal node tests $x_j \le \tau$;
 leaves hold a class-frequency vector. No categorical splits, no multi-way
@@ -85,9 +86,54 @@ shows this as a vectorised cumulative-count sweep; a brute-force
 "recompute both child impurities from scratch at every candidate
 threshold" version is $O(d\,n_t^2)$ and is what the tests check against.
 
-**Ties.** The first split found wins: lowest feature index, then lowest
-threshold. Deterministic — unlike scikit-learn, which permutes features
-with its RNG and so breaks equal-gain ties randomly.
+**Ties.** Among splits within `_MIN_GAIN` of the best gain, the one on the
+lowest feature index wins, then the lowest threshold. This rule is applied
+*independently of the order features are visited in*, so it holds on both
+the deterministic and the seeded path of §3a — unlike scikit-learn, which
+permutes features with its RNG and so breaks equal-gain ties randomly.
+
+## 3a. Feature subsampling — `max_features` and `random_state`
+
+By default every feature is a split candidate at every node
+(`max_features=None`). Setting `max_features` $= m < d$ restricts each
+node's search to a random size-$m$ subset of the features. For a lone tree
+this is a mild regulariser and a source of variance; its real purpose is
+to **decorrelate** the trees of a `RandomForest` (ESL §15.2 — averaging
+$B$ trees with pairwise correlation $\rho$ leaves variance
+$\rho\sigma^2 + \frac{1-\rho}{B}\sigma^2$, so shrinking $\rho$ is what
+makes bagging pay off). See [`random_forest.md`](random_forest.md).
+
+**Resolving the parameter to an integer $m$:**
+
+| `max_features` | $m$ |
+| --- | --- |
+| `None` | $d$ |
+| `"sqrt"` | $\max(1, \lfloor\sqrt{d}\rfloor)$ |
+| `"log2"` | $\max(1, \lfloor\log_2 d\rfloor)$ |
+| `int` $k$ | $k$ (must satisfy $1 \le k \le d$) |
+| `float` $f$ | $\max(1, \lfloor f d\rfloor)$ (must satisfy $0 < f \le 1$) |
+
+**The per-node draw.** `random_state` seeds a NumPy `Generator`. At each
+node we walk a fresh permutation of the $d$ feature indices and score a
+feature's best split only if that feature is **non-constant within the
+node**; only non-constant features count against the $m$ budget, and the
+walk stops once $m$ of them have been scored (or the permutation is
+exhausted). Skipping constant features for free guarantees a valid split
+is still found whenever one exists — a subsample can never strand the node
+on constant columns while a real split sits on an unsampled feature.
+scikit-learn threads its constant-feature bookkeeping through the
+recursion (a feature constant in a parent is skipped in all its
+descendants); we redraw independently at every node, which is simpler and,
+for the lesson, equivalent.
+
+**Determinism and parity.** With `max_features=None` *and*
+`random_state=None` no permutation is drawn — the sweep runs in index
+order and the tree is byte-identical to the M1 estimator (every §7
+deterministic-path check and the exact scikit-learn parity still hold).
+Once $m < d$, our `Generator` stream and scikit-learn's internal C RNG
+diverge, so a seeded tree is reproducible **against itself** but can only
+be checked against scikit-learn by tolerance (held-out accuracy), not
+exact predictions.
 
 ## 4. Recursion, stopping, leaves
 
@@ -135,27 +181,40 @@ Documented consequences:
 ```
 DecisionTreeClassifier(criterion="gini", max_depth=None,
                        min_samples_split=2, min_samples_leaf=1,
-                       min_impurity_decrease=0.0)
+                       min_impurity_decrease=0.0,
+                       max_features=None, random_state=None)
 
 _gini(counts):     p = counts / counts.sum();  return 1 - Σ p²
 _entropy(counts):  p = counts / counts.sum();  return -Σ_{p>0} p·log2(p)
 
-_best_split(X_node, y_idx, K, H, min_leaf):          # -> (feature|None, threshold, ΔH)
+_resolve_max_features(max_features, d):   # None->d, "sqrt"->⌊√d⌋, "log2"->⌊log2 d⌋,
+                                          # int k->k, float f->⌊f·d⌋  (all clamped ≥ 1)
+
+_best_split(X_node, y_idx, K, H, min_leaf, m, rng):  # -> (feature|None, threshold, ΔH)
     parent = H(bincount(y_idx, K))
     best_gain, best_j, best_τ = 0, None, 0
     onehot = eye(K)[y_idx]
-    for j in range(d):
+    order_of_j = range(d) if rng is None else rng.permutation(d)
+    scored = 0
+    for j in order_of_j:
         order    = argsort(X_node[:, j])
         x        = X_node[order, j]
-        left     = cumsum(onehot[order], axis=0)     # (n_t, K): counts of first m+1 rows
+        distinct = x[:-1] != x[1:]
+        if not distinct.any():  continue            # constant in node -> no budget used
+        left     = cumsum(onehot[order], axis=0)[:-1]   # (n_t-1, K)
         right    = parent_counts - left
         n_left   = arange(1, n_t);  n_right = n_t - n_left
-        valid    = (x[:-1] != x[1:]) & (n_left >= min_leaf) & (n_right >= min_leaf)
-        child    = (n_left·H(left[:-1]) + n_right·H(right[:-1])) / n_t
+        valid    = distinct & (n_left >= min_leaf) & (n_right >= min_leaf)
+        child    = (n_left·H(left) + n_right·H(right)) / n_t
         gains    = where(valid, parent - child, -inf)
-        m        = argmax(gains)
-        if gains[m] > best_gain + 1e-12:             # strict -> first (j, τ) wins ties
-            best_gain, best_j, best_τ = gains[m], j, (x[m] + x[m+1]) / 2
+        i        = argmax(gains)
+        # replace on a real improvement, or an equal-gain split on a lower feature index
+        if gains[i] > 1e-12 and (gains[i] > best_gain + 1e-12
+                                 or (best_j is not None
+                                     and gains[i] > best_gain - 1e-12 and j < best_j)):
+            best_gain, best_j, best_τ = gains[i], j, (x[i] + x[i+1]) / 2
+        scored += 1
+        if m is not None and scored >= m:  break
     return best_j, best_τ, best_gain
 
 _build(X, y_idx, depth):
@@ -163,7 +222,7 @@ _build(X, y_idx, depth):
     node     = Node(n_samples=len(y_idx), impurity=imp, value=value)
     if depth == max_depth or len(y_idx) < min_samples_split or imp == 0:
         return node                                  # leaf
-    j, τ, gain = _best_split(X, y_idx, K, H, min_samples_leaf)
+    j, τ, gain = _best_split(X, y_idx, K, H, min_samples_leaf, m, rng)
     if j is None or (len(y_idx) / n) · gain < min_impurity_decrease:
         return node                                  # leaf
     mask = X[:, j] <= τ
@@ -177,6 +236,9 @@ fit(X, y):
     validate hyperparameters
     X, y = check_X_y(X, y)
     classes_ = unique(y);  y_idx = searchsorted(classes_, y)
+    m   = _resolve_max_features(max_features, d)
+    rng = None if (max_features is None and random_state is None) \
+               else check_random_state(random_state)
     tree_ = _build(X, y_idx, depth=0)
     feature_importances_ /= feature_importances_.sum()   # if any split was made
 
@@ -196,14 +258,15 @@ impurity math and the split search are unit-tested directly, mirroring the
 | Analytic | `_gini` / `_entropy` on hand distributions: pure → 0; 50/50 → gini 0.5, entropy 1.0 bit; 3-way uniform → gini 2/3, entropy $\log_2 3$. Hand-laid 1-feature node: `_best_split` returns the known $(j, \tau)$ (midpoint) and $\Delta H$. |
 | Split search | Tiny 2-D set with an obvious axis-aligned gap → root split is the correct $(j, \tau)$; `_best_split` against an independent $O(n^2)$ brute-force version on random nodes. |
 | Independent reference | A dead-simple recursive builder (brute-force impurity at every candidate threshold, no sweep) agrees with `tree_` structure and `predict` on seeded data — the gradient-check analogue. |
-| Determinism | Same data + params → structurally identical tree across runs. |
+| Determinism | Same data + params → structurally identical tree across runs. Seeded (`max_features` set + `random_state`): same seed → identical tree, different seed → (generally) different tree; `max_features=None, random_state=None` tree is unchanged from the unseeded path. |
+| Feature subsampling | `max_features` resolves `"sqrt"`/`"log2"`/`int`/`float`/`None` to the right $m$; every realised split is on one of that node's $m$ drawn features; `max_features=1` still fits separable data given enough depth; bad `max_features` (string not in the set, `int` out of $[1, d]$, `float` outside $(0, 1]$) raises. |
 | Regularisers | Unbounded tree → 100% train accuracy on separable data; `max_depth=1` → a stump (`max_depth_ == 1`, both children leaves); large `min_impurity_decrease` / `min_samples_split > n` → root is a leaf; every leaf has $\ge$ `min_samples_leaf` rows. |
 | proba | rows sum to 1; shape $(m, K)$; `predict == classes_[argmax(proba)]`. |
 | feature_importances_ | sums to 1 when the tree splits; all-zero when the root is a leaf; concentrates on the informative feature when only one matters. |
 | Contract | `NotFittedError` before `fit`; `fit` returns self; hyperparameters unmutated; feature-count mismatch in `predict` raises; bad `criterion`, `max_depth < 1`, `min_samples_split < 2`, `min_samples_leaf < 1`, `min_impurity_decrease < 0` raise; `repr` round-trips. |
 | Behavioral | `make_moons(noise=0.2)`: a depth-capped tree beats a `LogisticRegression` baseline on held-out data. 3-class `make_blobs` → high held-out accuracy. |
 | Edge | single feature; single sample (→ leaf); constant features (→ leaf); single-class `y` (→ leaf, impurity 0); duplicate rows with conflicting labels (→ mixed-distribution leaf). |
-| Reference (`-m reference`) | `predict` (exact) and `predict_proba` (`rtol`) match `sklearn.tree.DecisionTreeClassifier` for both criteria across several `max_depth`, plus a `min_samples_leaf` case. `feature_importances_` is checked only approximately (`atol`): when two features tie for the best split, our "lowest index" rule and scikit-learn's RNG feature permutation can attribute that node's decrease to different features even though the predictions are identical. |
+| Reference (`-m reference`) | On the deterministic path (`max_features=None`): `predict` (exact) and `predict_proba` (`rtol`) match `sklearn.tree.DecisionTreeClassifier` for both criteria across several `max_depth`, plus a `min_samples_leaf` case. `feature_importances_` is checked only approximately (`atol`): when two features tie for the best split, our "lowest index" rule and scikit-learn's RNG feature permutation can attribute that node's decrease to different features even though the predictions are identical. With `max_features` set the two RNGs diverge, so parity is by held-out-accuracy tolerance only. |
 
 Plus `examples/decision_tree.py` — seeded: the train/test accuracy curve
 across `max_depth` (the overfitting story), the fitted tree printed as
@@ -214,9 +277,11 @@ indented text, and `feature_importances_`.
 - **`DecisionTreeRegressor`** (MSE criterion, mean-value leaves) — a small
   follow-up one-file PR sharing this recursion, exactly as
   `KNeighborsRegressor` was deferred after the classifier.
-- **`random_state` / `max_features`** — with deterministic tie-breaking and
-  all features considered they would be no-ops. They return in M2 when
-  `RandomForest` needs feature subsampling.
+- **`random_state` / `max_features`** — *now implemented* (§3a), added
+  ahead of `RandomForest`, which needs per-node feature subsampling to
+  decorrelate its trees. scikit-learn's *other* RNG use — random
+  tie-breaking among equal-gain splits — is still not copied; our
+  tie-break stays deterministic (lowest feature index).
 - **`ccp_alpha`** (cost-complexity pruning), **`class_weight`**,
   **`splitter`** (best only), **float `min_samples_*`** (fractions),
   **categorical features** — all standard scikit-learn options left out to
