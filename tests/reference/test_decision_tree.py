@@ -84,3 +84,27 @@ def test_min_samples_leaf_matches_sklearn() -> None:
     theirs = tree.DecisionTreeClassifier(min_samples_leaf=8, random_state=0).fit(X, y)
 
     np.testing.assert_array_equal(ours.predict(X_query), theirs.predict(X_query))
+
+
+def test_max_features_tracks_sklearn_accuracy() -> None:
+    # With max_features set, our NumPy Generator and scikit-learn's internal C
+    # RNG produce different feature draws, so predictions cannot match exactly.
+    # A subsampled single tree should still land in the same accuracy ballpark.
+    tree = pytest.importorskip("sklearn.tree")
+
+    X, y = make_blobs(
+        n_samples=400, n_features=10, centers=3, cluster_std=5.0, random_state=5
+    )
+    X_test, y_test = make_blobs(
+        n_samples=200, n_features=10, centers=3, cluster_std=5.0, random_state=6
+    )
+
+    ours = DecisionTreeClassifier(max_depth=6, max_features="sqrt", random_state=0)
+    ours.fit(X, y)
+    theirs = tree.DecisionTreeClassifier(
+        max_depth=6, max_features="sqrt", random_state=0
+    ).fit(X, y)
+
+    ours_acc = np.mean(ours.predict(X_test) == y_test)
+    theirs_acc = theirs.score(X_test, y_test)
+    assert abs(ours_acc - theirs_acc) < 0.1

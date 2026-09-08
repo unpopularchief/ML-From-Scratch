@@ -16,9 +16,10 @@ Gini index :math:`1 - \sum_k p_k^2` or the Shannon entropy in bits
 scikit-learn). Leaves predict their class-frequency vector.
 
 Building the optimal tree is NP-complete; this greedy heuristic is the
-standard practical substitute. There is no cost-complexity pruning
-(``ccp_alpha``) and no feature subsampling (``max_features``) — see
-``docs/derivations/decision_tree.md``.
+standard practical substitute. ``max_features`` subsamples the candidate
+features at each node (seeded by ``random_state``) — the mechanism a
+random forest uses to decorrelate its trees; there is no cost-complexity
+pruning (``ccp_alpha``). See ``docs/derivations/decision_tree.md``.
 """
 
 from __future__ import annotations
@@ -31,7 +32,12 @@ import numpy as np
 from scratchgrad.base import Estimator
 from scratchgrad.metrics.classification import accuracy_score
 from scratchgrad.typing import FeatureMatrix, FloatArray, IntArray, TargetVector
-from scratchgrad.utils.validation import check_array, check_is_fitted, check_X_y
+from scratchgrad.utils.validation import (
+    check_array,
+    check_is_fitted,
+    check_random_state,
+    check_X_y,
+)
 
 # A split must beat the incumbent by more than this to be taken, which also
 # rejects numerically-spurious "gains" of order machine epsilon on a node
@@ -69,62 +75,134 @@ _Criterion = Callable[[FloatArray], FloatArray]
 _CRITERIA: dict[str, _Criterion] = {"gini": _gini, "entropy": _entropy}
 
 
+def _resolve_max_features(
+    max_features: str | int | float | None, n_features: int
+) -> int:
+    r"""Resolve the ``max_features`` hyperparameter to a concrete feature count.
+
+    ``None`` -> all ``n_features``; ``"sqrt"`` ->
+    :math:`\lfloor\sqrt{n}\rfloor`; ``"log2"`` ->
+    :math:`\lfloor\log_2 n\rfloor`; an ``int`` is taken as-is; a ``float``
+    is a fraction, :math:`\lfloor f\,n\rfloor`. String and fractional
+    results are clamped to at least 1.
+
+    Raises
+    ------
+    ValueError
+        On an unknown string, an ``int`` outside ``[1, n_features]``, or a
+        ``float`` outside ``(0, 1]``.
+
+    """
+    if max_features is None:
+        return n_features
+    if isinstance(max_features, str):
+        if max_features == "sqrt":
+            return max(1, int(np.sqrt(n_features)))
+        if max_features == "log2":
+            return max(1, int(np.log2(n_features)))
+        raise ValueError(
+            f"max_features string must be 'sqrt' or 'log2', got {max_features!r}."
+        )
+    if isinstance(max_features, bool):
+        raise ValueError(f"max_features must not be a bool, got {max_features!r}.")
+    if isinstance(max_features, (int, np.integer)):
+        if not 1 <= int(max_features) <= n_features:
+            raise ValueError(
+                f"max_features={int(max_features)} is out of range [1, {n_features}]."
+            )
+        return int(max_features)
+    if isinstance(max_features, float):
+        if not 0.0 < max_features <= 1.0:
+            raise ValueError(
+                f"max_features as a fraction must be in (0, 1], got {max_features}."
+            )
+        return max(1, int(max_features * n_features))
+    raise ValueError(
+        "max_features must be None, 'sqrt', 'log2', an int, or a float; "
+        f"got {type(max_features).__name__}."
+    )
+
+
 def _best_split(
     X_node: FloatArray,
     y_idx: IntArray,
     n_classes: int,
     impurity_fn: _Criterion,
     min_samples_leaf: int,
+    max_features: int | None = None,
+    rng: np.random.Generator | None = None,
 ) -> tuple[int | None, float, float]:
     r"""Best ``(feature, threshold)`` split of a node, and its impurity decrease.
 
-    Sweeps every feature: sort the node's rows by that feature, let the
-    left partition grow one row at a time (its class counts are the running
-    cumulative sum of the one-hot labels), and score the split at each
-    midpoint between distinct adjacent values. Returns ``(None, 0.0, 0.0)``
-    if no valid split exists (every feature constant, or none leaves both
-    children with ``min_samples_leaf`` rows).
+    Sweeps candidate features: sort the node's rows by that feature, let
+    the left partition grow one row at a time (its class counts are the
+    running cumulative sum of the one-hot labels), and score the split at
+    each midpoint between distinct adjacent values. Returns
+    ``(None, 0.0, 0.0)`` if no valid split exists (every candidate feature
+    constant, or none leaves both children with ``min_samples_leaf`` rows).
+
+    ``rng`` and ``max_features`` drive feature subsampling (see
+    ``docs/derivations/decision_tree.md`` §3a). With ``rng`` ``None`` the
+    features are swept in index order; otherwise in a fresh
+    ``rng.permutation`` order. A feature constant within the node is
+    skipped without spending budget; the sweep stops once ``max_features``
+    non-constant features have been scored (``None`` = no limit).
 
     Ties are broken towards the lowest feature index, then the lowest
-    threshold: a later split must beat the incumbent gain by more than
-    ``_MIN_GAIN`` to replace it.
+    threshold — independently of the sweep order, so the result depends on
+    the drawn *subset* but not on its permutation.
     """
     n_t = X_node.shape[0]
+    n_features = X_node.shape[1]
     parent_counts = np.bincount(y_idx, minlength=n_classes).astype(np.float64)
     parent_impurity = float(impurity_fn(parent_counts))  # H(S_t)
     one_hot = np.eye(n_classes)[y_idx]  # (n_t, n_classes)
 
-    n_left = np.arange(1, n_t)  # left-partition size at each candidate m
+    n_left = np.arange(1, n_t)  # left-partition size at each candidate cut
     n_right = n_t - n_left
 
+    feature_order = range(n_features) if rng is None else rng.permutation(n_features)
+
     best_gain, best_feature, best_threshold = 0.0, None, 0.0
-    for j in range(X_node.shape[1]):
+    n_scored = 0  # non-constant features evaluated so far (the max_features budget)
+    for j in feature_order:
+        j = int(j)
         order = np.argsort(X_node[:, j], kind="stable")
         x_sorted = X_node[order, j]
-        left_counts = np.cumsum(one_hot[order], axis=0)[:-1]  # rows order[:m+1]
+        distinct = x_sorted[:-1] != x_sorted[1:]
+        if not distinct.any():
+            continue  # constant within the node: not a candidate, no budget spent
+
+        left_counts = np.cumsum(one_hot[order], axis=0)[:-1]  # rows order[:i+1]
         right_counts = parent_counts - left_counts  # (n_t - 1, n_classes)
 
-        # weighted child impurity at every m:  (n_L/n_t) H(S_L) + (n_R/n_t) H(S_R)
+        # weighted child impurity at every cut:  (n_L/n_t) H(S_L) + (n_R/n_t) H(S_R)
         child_impurity = (
             n_left * impurity_fn(left_counts) + n_right * impurity_fn(right_counts)
         ) / n_t
-        gains = parent_impurity - child_impurity  # ΔH at every m
+        gains = parent_impurity - child_impurity  # ΔH at every cut
 
         # a split is valid only strictly between two distinct values and only
         # if both children keep at least min_samples_leaf rows
-        valid = (
-            (x_sorted[:-1] != x_sorted[1:])
-            & (n_left >= min_samples_leaf)
-            & (n_right >= min_samples_leaf)
-        )
-        if not valid.any():
-            continue
-        gains = np.where(valid, gains, -np.inf)
-        m = int(np.argmax(gains))  # first maximal m -> lowest threshold
-        if gains[m] > best_gain + _MIN_GAIN:
-            best_gain = float(gains[m])
-            best_feature = j
-            best_threshold = 0.5 * float(x_sorted[m] + x_sorted[m + 1])  # midpoint
+        valid = distinct & (n_left >= min_samples_leaf) & (n_right >= min_samples_leaf)
+        if valid.any():
+            masked = np.where(valid, gains, -np.inf)
+            i = int(np.argmax(masked))  # first maximal cut -> lowest threshold
+            gain = float(masked[i])
+            improves = gain > best_gain + _MIN_GAIN
+            ties_lower_index = (
+                best_feature is not None
+                and gain > best_gain - _MIN_GAIN
+                and j < best_feature
+            )
+            if gain > _MIN_GAIN and (improves or ties_lower_index):
+                best_gain = gain
+                best_feature = j
+                best_threshold = 0.5 * float(x_sorted[i] + x_sorted[i + 1])  # midpoint
+
+        n_scored += 1
+        if max_features is not None and n_scored >= max_features:
+            break
 
     return best_feature, best_threshold, best_gain
 
@@ -175,6 +253,18 @@ class DecisionTreeClassifier(Estimator):
         much, measured as :math:`\frac{n_t}{n}\Delta H` (weighted by the
         fraction of all training samples in the node, matching
         scikit-learn).
+    max_features : {"sqrt", "log2"}, int, float, or None, default=None
+        Number of features considered as split candidates at each node.
+        ``None`` uses all of them (the fully deterministic tree).
+        ``"sqrt"`` / ``"log2"`` use :math:`\lfloor\sqrt d\rfloor` /
+        :math:`\lfloor\log_2 d\rfloor`; an int is that count; a float is a
+        fraction of ``n_features``. A fresh random subset is drawn at every
+        node — the mechanism a random forest uses to decorrelate its
+        trees. See ``docs/derivations/decision_tree.md`` §3a.
+    random_state : int, numpy.random.Generator, or None, default=None
+        Seeds the per-node feature subsample. Has no effect when
+        ``max_features`` is ``None`` (nothing is drawn) — the tree is then
+        fully deterministic and byte-identical to the unseeded fit.
 
     Attributes
     ----------
@@ -189,6 +279,8 @@ class DecisionTreeClassifier(Estimator):
         Root of the fitted tree.
     max_depth_ : int
         Depth actually reached (0 if the root is a leaf).
+    max_features_ : int
+        The ``max_features`` hyperparameter resolved to a concrete count.
     feature_importances_ : ndarray of shape (n_features,)
         Normalised total impurity decrease attributed to each feature
         (the "Gini importance"), summing to 1 — or all zeros if the root is
@@ -202,8 +294,9 @@ class DecisionTreeClassifier(Estimator):
     - \frac{n_R}{n_t}H(S_R)`, then recurses. Thresholds are midpoints
     between adjacent distinct feature values. Ties are broken
     deterministically (lowest feature index, then lowest threshold), unlike
-    scikit-learn which permutes features with its RNG. There is no
-    cost-complexity pruning and no feature subsampling. Full walkthrough:
+    scikit-learn which permutes features with its RNG. ``max_features``
+    (seeded by ``random_state``) subsamples the candidate features per
+    node; there is no cost-complexity pruning. Full walkthrough:
     ``docs/derivations/decision_tree.md``.
 
     Examples
@@ -227,6 +320,8 @@ class DecisionTreeClassifier(Estimator):
         min_samples_split: int = 2,
         min_samples_leaf: int = 1,
         min_impurity_decrease: float = 0.0,
+        max_features: str | int | float | None = None,
+        random_state: int | np.random.Generator | None = None,
     ) -> None:
         """See the class docstring for parameter descriptions."""
         self.criterion = criterion
@@ -234,6 +329,8 @@ class DecisionTreeClassifier(Estimator):
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
         self.min_impurity_decrease = min_impurity_decrease
+        self.max_features = max_features
+        self.random_state = random_state
 
     def fit(self, X: FeatureMatrix, y: TargetVector) -> DecisionTreeClassifier:
         """Grow the tree on ``X``, ``y``.
@@ -254,7 +351,9 @@ class DecisionTreeClassifier(Estimator):
         ValueError
             If ``criterion`` is unknown, ``max_depth`` is less than 1,
             ``min_samples_split`` is less than 2, ``min_samples_leaf`` is
-            less than 1, or ``min_impurity_decrease`` is negative.
+            less than 1, ``min_impurity_decrease`` is negative, or
+            ``max_features`` is not a valid string / an int outside
+            ``[1, n_features]`` / a float outside ``(0, 1]``.
 
         """
         if self.criterion not in _CRITERIA:
@@ -281,6 +380,17 @@ class DecisionTreeClassifier(Estimator):
         self.n_classes_ = self.classes_.shape[0]
         self.n_features_in_ = X.shape[1]
         y_idx = np.searchsorted(self.classes_, y)  # labels -> 0 .. K-1
+
+        self.max_features_ = _resolve_max_features(
+            self.max_features, self.n_features_in_
+        )
+        # No seed and no subsampling -> stay on the deterministic index-order
+        # sweep, byte-identical to the M1 tree. Otherwise thread a Generator.
+        self._rng = (
+            None
+            if self.max_features is None and self.random_state is None
+            else check_random_state(self.random_state)
+        )
 
         self._impurity_fn = _CRITERIA[self.criterion]
         self._n_total = X.shape[0]
@@ -360,7 +470,13 @@ class DecisionTreeClassifier(Estimator):
             return node  # leaf
 
         feature, threshold, gain = _best_split(
-            X, y_idx, self.n_classes_, self._impurity_fn, self.min_samples_leaf
+            X,
+            y_idx,
+            self.n_classes_,
+            self._impurity_fn,
+            self.min_samples_leaf,
+            self.max_features_,
+            self._rng,
         )
         if feature is None:
             return node  # no valid split -> leaf
