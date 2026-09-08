@@ -16,7 +16,7 @@ per `plan.md` §0.3 *before* the implementation. Notation follows
 | $\tilde{X} = [\mathbf{1} \;\; X]$ | $(n, d{+}1)$ | augmented design matrix |
 | $\theta = [b, w]$ | $(d{+}1,)$ | folded parameter vector |
 | $\alpha$ | scalar $\ge 0$ | regularisation strength (`alpha`) |
-| $D$ | $(d{+}1, d{+}1)$ | $\operatorname{diag}(0, 1, \dots, 1)$ — identity with a $0$ in the intercept slot |
+| $D$ | $(d{+}1, d{+}1)$ | $\mathrm{diag}(0, 1, \dots, 1)$ — identity with a $0$ in the intercept slot |
 
 The model is unchanged from OLS: $\hat{y} = \tilde{X}\theta$, with the
 intercept folded in by prepending a constant-1 column to $X$. When
@@ -37,7 +37,7 @@ Three things to note:
 make the fit depend on where the target's origin sits: add a constant to
 every $y_i$ and the solution would shift in a way it should not. We write the
 penalty as $\lVert w \rVert_2^2 = \theta^\top D\theta$ with
-$D = \operatorname{diag}(0, 1, \dots, 1)$, so the intercept entry is excluded.
+$D = \mathrm{diag}(0, 1, \dots, 1)$, so the intercept entry is excluded.
 
 **The $\tfrac1n$ wraps both terms.** This keeps the data term equal to the
 mean squared error (consistent with `LinearRegression`) *and* makes `alpha`

@@ -13,7 +13,7 @@ closed form by the soft-thresholding operator
 
 .. math::
     w_j = \frac{S(\rho_j,\ \alpha)}{z_j}, \qquad
-    S(\rho, \alpha) = \operatorname{sign}(\rho)\,(\lvert\rho\rvert - \alpha)_+
+    S(\rho, \alpha) = \mathrm{sign}(\rho)\,(\lvert\rho\rvert - \alpha)_+
 
 with :math:`\rho_j = \frac1n x_j^\top r_j` (``r_j`` the partial residual
 with feature ``j`` added back) and :math:`z_j = \frac1n\lVert x_j\rVert_2^2`.
@@ -45,7 +45,7 @@ from scratchgrad.utils.validation import check_array, check_is_fitted, check_X_y
 def _soft_threshold(rho: float, alpha: float) -> float:
     r"""Soft-thresholding operator :math:`S(\rho, \alpha)`.
 
-    :math:`S(\rho, \alpha) = \operatorname{sign}(\rho)\,
+    :math:`S(\rho, \alpha) = \mathrm{sign}(\rho)\,
     (\lvert\rho\rvert - \alpha)_+` — shrink ``rho`` toward zero by
     ``alpha``, snapping to exactly zero on :math:`[-\alpha, \alpha]`. This
     is the 1-D minimiser of :math:`\frac12(w - \rho)^2 + \alpha\lvert

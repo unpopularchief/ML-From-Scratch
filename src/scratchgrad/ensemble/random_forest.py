@@ -12,7 +12,7 @@ and drives the variance toward the floor set by the residual tree-to-tree
 correlation:
 
 .. math::
-    \operatorname{Var}\!\left(\tfrac{1}{B}\textstyle\sum_b T_b\right)
+    \mathrm{Var}\!\left(\tfrac{1}{B}\textstyle\sum_b T_b\right)
       = \rho\,\sigma^2 + \frac{1 - \rho}{B}\,\sigma^2 .
 
 The out-of-bag rows — the :math:`\approx e^{-1}` fraction left out of each

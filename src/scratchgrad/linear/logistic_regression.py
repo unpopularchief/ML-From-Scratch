@@ -5,12 +5,12 @@ Models :math:`P(y = 1 \mid x) = \sigma(w^\top x + b)` and fits :math:`\theta =
 penalty on the weights (never the intercept):
 
 .. math::
-    J(\theta) = \frac{1}{n}\left[\,\sum_i \big(\operatorname{softplus}(z_i)
+    J(\theta) = \frac{1}{n}\left[\,\sum_i \big(\mathrm{softplus}(z_i)
                 - y_i z_i\big) + \frac{1}{2C}\lVert w \rVert_2^2 \,\right],
     \qquad z = \tilde{X}\theta
 
 where :math:`\tilde{X} = [\mathbf{1} \; X]` folds the intercept in and
-:math:`\operatorname{softplus}(z) - y z = -[y\log\sigma(z) + (1 - y)
+:math:`\mathrm{softplus}(z) - y z = -[y\log\sigma(z) + (1 - y)
 \log(1 - \sigma(z))]` is the numerically stable form of the per-sample loss.
 :math:`J` is convex. Two iterative solvers are offered (there is no closed
 form):
@@ -18,7 +18,7 @@ form):
 - ``"newton"`` — Newton--Raphson, i.e. iteratively reweighted least squares:
   :math:`\theta \leftarrow \theta - H^{-1}g` with
   :math:`H = \frac1n(\tilde{X}^\top S\tilde{X} + \frac1C D)` and
-  :math:`S = \operatorname{diag}(p_i(1 - p_i))`. Quadratic convergence, no
+  :math:`S = \mathrm{diag}(p_i(1 - p_i))`. Quadratic convergence, no
   learning rate. The default.
 - ``"gd"`` — batch gradient descent on :math:`J`, using
   :math:`\nabla_\theta J = \frac1n(\tilde{X}^\top(p - y) + \frac1C D\theta)`.
@@ -56,7 +56,7 @@ def _logistic_objective(
 ) -> float:
     r"""Mean negative log-likelihood plus the L2 penalty.
 
-    :math:`J(\theta) = \frac1n\big[\sum_i (\operatorname{softplus}(z_i)
+    :math:`J(\theta) = \frac1n\big[\sum_i (\mathrm{softplus}(z_i)
     - y_i z_i) + \frac{1}{2C}\lVert w\rVert_2^2\big]`, with
     :math:`z = \tilde{X}\theta`, ``inv_C`` standing in for :math:`1/C`
     (``0`` when there is no penalty) and ``penalty_mask`` the diagonal of
@@ -100,7 +100,7 @@ def _logistic_hessian(
     r"""Hessian of :func:`_logistic_objective`.
 
     :math:`\nabla^2_\theta J = \frac1n\big(\tilde{X}^\top S\tilde{X}
-    + \frac1C D\big)`, with :math:`S = \operatorname{diag}(p_i(1 - p_i))`.
+    + \frac1C D\big)`, with :math:`S = \mathrm{diag}(p_i(1 - p_i))`.
     Does not depend on ``y``.
     """
     n = X_aug.shape[0]
@@ -158,14 +158,14 @@ class LogisticRegression(Estimator):
     Notes
     -----
     The objective minimised is
-    :math:`J(\theta) = \frac1n[\sum_i (\operatorname{softplus}(z_i)
+    :math:`J(\theta) = \frac1n[\sum_i (\mathrm{softplus}(z_i)
     - y_i z_i) + \frac{1}{2C}\lVert w\rVert_2^2]` with
     :math:`z = \tilde{X}\theta`, :math:`\tilde{X} = [\mathbf 1\; X]`,
     :math:`\theta = [b, w]`. It is convex.
     :math:`\nabla_\theta J = \frac1n(\tilde{X}^\top(p - y) + \frac1C D\theta)`
     and :math:`\nabla^2_\theta J = \frac1n(\tilde{X}^\top S\tilde{X}
     + \frac1C D)` with :math:`p = \sigma(\tilde{X}\theta)` and
-    :math:`S = \operatorname{diag}(p_i(1 - p_i))`. See
+    :math:`S = \mathrm{diag}(p_i(1 - p_i))`. See
     ``docs/derivations/logistic_regression.md``.
 
     Gradient descent converges much faster on comparably-scaled features.

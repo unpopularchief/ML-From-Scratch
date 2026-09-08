@@ -17,9 +17,9 @@ written per `plan.md` §0.3 *before* the implementation. Notation follows
 | $\theta = [b, w]$ | $(d{+}1,)$ | folded parameter vector |
 | $z = \tilde{X}\theta$ | $(n,)$ | logits (log-odds) |
 | $p = \sigma(z)$ | $(n,)$ | predicted $P(y = 1 \mid x)$ |
-| $S = \operatorname{diag}\big(p_i(1 - p_i)\big)$ | $(n, n)$ | Fisher / IRLS weights |
+| $S = \mathrm{diag}\big(p_i(1 - p_i)\big)$ | $(n, n)$ | Fisher / IRLS weights |
 | $C$ | scalar $> 0$ | inverse L2 strength (`C`) |
-| $D$ | $(d{+}1, d{+}1)$ | $\operatorname{diag}(0, 1, \dots, 1)$ — identity with a $0$ in the intercept slot |
+| $D$ | $(d{+}1, d{+}1)$ | $\mathrm{diag}(0, 1, \dots, 1)$ — identity with a $0$ in the intercept slot |
 
 **Model.** The probability of the positive class is a sigmoid of an affine
 score:
@@ -54,28 +54,28 @@ learning rate does not have to be re-tuned when $n$ changes, and add an
 optional L2 penalty on the weights only:
 
 $$\boxed{\;J(\theta) = \frac{1}{n}\left[\,
-  \sum_{i=1}^{n}\Big(\operatorname{softplus}(z_i) - y_i z_i\Big)
+  \sum_{i=1}^{n}\Big(\mathrm{softplus}(z_i) - y_i z_i\Big)
   \;+\; \frac{1}{2C}\lVert w \rVert_2^2 \,\right]\;}$$
 
 using the identity, for $p = \sigma(z)$,
 
 $$-\big[y\log p + (1 - y)\log(1 - p)\big]
   = \log\!\big(1 + e^{z}\big) - y z
-  = \operatorname{softplus}(z) - y z.$$
+  = \mathrm{softplus}(z) - y z.$$
 
-*Derivation of the identity.* $\log p = \log\sigma(z) = -\operatorname{softplus}(-z)$
-and $\log(1 - p) = \log\sigma(-z) = -\operatorname{softplus}(z)$; substitute and
-use $\operatorname{softplus}(z) - \operatorname{softplus}(-z) = z$.
+*Derivation of the identity.* $\log p = \log\sigma(z) = -\mathrm{softplus}(-z)$
+and $\log(1 - p) = \log\sigma(-z) = -\mathrm{softplus}(z)$; substitute and
+use $\mathrm{softplus}(z) - \mathrm{softplus}(-z) = z$.
 
-**Numerical stability.** Writing the loss as $\operatorname{softplus}(z) - yz$
+**Numerical stability.** Writing the loss as $\mathrm{softplus}(z) - yz$
 means the code never evaluates $\log$ of a probability that has rounded to
 exactly $0$ or $1$. `softplus` itself is computed as
-$\log(1 + e^{z}) = \operatorname{logaddexp}(0, z)$, whose standard implementation
+$\log(1 + e^{z}) = \mathrm{logaddexp}(0, z)$, whose standard implementation
 subtracts the max before exponentiating — the same trick
 `scratchgrad.utils.math.logsumexp` uses — so no `exp` overflows. The link
 $p = \sigma(z)$ uses the branch-wise `scratchgrad.utils.math.sigmoid`.
 
-**Convexity.** $\operatorname{softplus}$ is convex (its second derivative
+**Convexity.** $\mathrm{softplus}$ is convex (its second derivative
 $\sigma(z)(1 - \sigma(z)) > 0$), $-y_i z_i$ is linear, and
 $\lVert w \rVert_2^2$ is convex — so $J$ is convex, and *strictly* convex
 whenever the penalty is present ($C < \infty$) or $\tilde{X}$ has full column
@@ -86,9 +86,9 @@ iterate beyond the number of steps.
 ## 3. Gradient
 
 Differentiate the data term through $z = \tilde{X}\theta$. Since
-$\dfrac{\mathrm{d}}{\mathrm{d}z}\operatorname{softplus}(z) = \sigma(z)$,
+$\dfrac{\mathrm{d}}{\mathrm{d}z}\mathrm{softplus}(z) = \sigma(z)$,
 
-$$\frac{\partial}{\partial z_i}\Big(\operatorname{softplus}(z_i) - y_i z_i\Big)
+$$\frac{\partial}{\partial z_i}\Big(\mathrm{softplus}(z_i) - y_i z_i\Big)
   = \sigma(z_i) - y_i = p_i - y_i,$$
 
 and the chain rule with $\dfrac{\partial z}{\partial \theta} = \tilde{X}$ gives
@@ -109,7 +109,7 @@ $\dfrac{\partial p_i}{\partial z_i} = p_i(1 - p_i)$:
 
 $$\nabla^2_\theta J = \frac{1}{n}\left[\,
   \tilde{X}^\top S\,\tilde{X} \;+\; \frac{1}{C} D \,\right],
-  \qquad S = \operatorname{diag}\big(p_i(1 - p_i)\big) \succeq 0.$$
+  \qquad S = \mathrm{diag}\big(p_i(1 - p_i)\big) \succeq 0.$$
 
 $\tilde{X}^\top S \tilde{X}$ is positive semidefinite (it is a Gram matrix in
 the $\sqrt{S}$-weighted inner product), so $J$ is convex; adding
@@ -170,7 +170,7 @@ $H$) — a documented degenerate case, as in scikit-learn.
 scikit-learn's `LogisticRegression(penalty="l2", C=...)` minimises
 
 $$\frac{1}{2}\lVert w \rVert_2^2 \;+\; C \sum_{i=1}^{n}
-  \big(\operatorname{softplus}(z_i) - y_i z_i\big)$$
+  \big(\mathrm{softplus}(z_i) - y_i z_i\big)$$
 
 (the residual *sum*, no $\tfrac1n$). Our $J$ is that expression multiplied by
 $\tfrac{1}{nC}$ — a positive constant, which does not move the minimiser — so

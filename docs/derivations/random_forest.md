@@ -17,13 +17,13 @@ aggregation rule, and the out-of-bag estimate.
 | Symbol | Shape | Meaning |
 | --- | --- | --- |
 | $X$, $y$ | $(n, d)$, $(n,)$ | training design matrix, class labels |
-| $\mathcal{C}$ | $(K,)$ | `classes_` $= \operatorname{np.unique}(y)$, sorted |
+| $\mathcal{C}$ | $(K,)$ | `classes_` $= \mathrm{np.unique}(y)$, sorted |
 | $B$ | scalar | number of trees (`n_estimators`) |
 | $\mathcal{D}^{*b}$ | — | the $b$-th bootstrap resample of the $n$ training rows |
 | $T_b$ | — | the decision tree fit on $\mathcal{D}^{*b}$ |
 | $m$ | scalar | features considered per split (`max_features`), $m \le d$ |
 | $\hat{p}_b(x)$ | $(K,)$ | class-probability vector tree $b$ predicts for $x$ (its leaf's frequency vector) |
-| $\operatorname{oob}(i)$ | — | $\{\,b : i \notin \mathcal{D}^{*b}\,\}$ — the trees for which row $i$ is *out-of-bag* |
+| $\mathrm{oob}(i)$ | — | $\{\,b : i \notin \mathcal{D}^{*b}\,\}$ — the trees for which row $i$ is *out-of-bag* |
 
 Naturally multiclass (`classes_` has no size limit). Numeric features only,
 same as the base tree.
@@ -38,7 +38,7 @@ such trees keeps the low bias and cuts the variance.
 Take $B$ identically distributed estimators, each with variance $\sigma^2$
 and pairwise correlation $\rho$. The variance of their mean is
 
-$$\operatorname{Var}\!\left(\frac{1}{B}\sum_{b=1}^{B} T_b\right)
+$$\mathrm{Var}\!\left(\frac{1}{B}\sum_{b=1}^{B} T_b\right)
   = \rho\,\sigma^2 \;+\; \frac{1 - \rho}{B}\,\sigma^2 .$$
 
 As $B \to \infty$ the second term vanishes; the first term $\rho\sigma^2$
@@ -71,12 +71,12 @@ $$\left(1 - \frac{1}{n}\right)^{n} \xrightarrow[n \to \infty]{} e^{-1}
 
 So on average ~37% of the rows are **out-of-bag (OOB)** for each tree —
 they took no part in fitting it. Collecting, for each training row $i$,
-the predictions of just the trees in $\operatorname{oob}(i)$ gives a
+the predictions of just the trees in $\mathrm{oob}(i)$ gives a
 validation estimate for free:
 
 $$\hat{p}^{\text{oob}}(x_i) =
-  \frac{1}{\lvert\operatorname{oob}(i)\rvert}
-  \sum_{b \in \operatorname{oob}(i)} \hat{p}_b(x_i),
+  \frac{1}{\lvert\mathrm{oob}(i)\rvert}
+  \sum_{b \in \mathrm{oob}(i)} \hat{p}_b(x_i),
   \qquad
   \hat{y}^{\text{oob}}(x_i) = \mathcal{C}\big[\arg\max_k \hat{p}^{\text{oob}}(x_i)_k\big]$$
 

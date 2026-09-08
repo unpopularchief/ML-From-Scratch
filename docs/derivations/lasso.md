@@ -92,7 +92,7 @@ with
 $$\rho_j = \frac{1}{n}\, x_j^\top r_j, \qquad
   z_j = \frac{1}{n}\lVert x_j\rVert_2^2$$
 
-The subdifferential of $\alpha\lvert w_j\rvert$ is $\alpha\operatorname{sign}
+The subdifferential of $\alpha\lvert w_j\rvert$ is $\alpha\mathrm{sign}
 (w_j)$ for $w_j \ne 0$ and the interval $[-\alpha, \alpha]$ at $w_j = 0$. The
 optimality condition $0 \in \partial f(w_j)$ is
 
@@ -109,7 +109,7 @@ Case-split:
 which is exactly
 
 $$\boxed{\;w_j \;=\; \frac{S(\rho_j,\ \alpha)}{z_j}, \qquad
-  S(\rho, \alpha) = \operatorname{sign}(\rho)\,\big(\lvert\rho\rvert
+  S(\rho, \alpha) = \mathrm{sign}(\rho)\,\big(\lvert\rho\rvert
   - \alpha\big)_+\;}$$
 
 $S$ is the **soft-thresholding operator** — shrink $\rho$ toward $0$ by
@@ -230,7 +230,7 @@ either.
 | --- | --- |
 | Analytic | `_soft_threshold` matches its definition for values inside and outside $[-\alpha, \alpha]$, both signs, and at the boundary. |
 | Analytic | A single standardised feature with a hand-computed $\rho$ recovers `coef_ ≈ S(ρ, α)`. |
-| KKT / optimality | At the fitted $w$, with $c = \frac1n X_c^\top(y_c - X_c w)$: $c_j \approx \alpha\operatorname{sign}(w_j)$ for $w_j \ne 0$, and $\lvert c_j\rvert \le \alpha (1 + \varepsilon)$ for $w_j = 0$. (Replaces the gradient check.) |
+| KKT / optimality | At the fitted $w$, with $c = \frac1n X_c^\top(y_c - X_c w)$: $c_j \approx \alpha\mathrm{sign}(w_j)$ for $w_j \ne 0$, and $\lvert c_j\rvert \le \alpha (1 + \varepsilon)$ for $w_j = 0$. (Replaces the gradient check.) |
 | Reduction | `Lasso(alpha=0)` matches `LinearRegression` on well-conditioned seeded data. |
 | Sparsity | A large enough $\alpha$ makes some `coef_` entries *exactly* `0.0`; past a further point all of them, with `intercept_ ≈ ȳ`. |
 | Monotonicity | The number of non-zero coefficients is non-increasing as $\alpha$ grows; $\lVert w\rVert_1$ decreases. |

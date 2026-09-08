@@ -7,11 +7,11 @@ maximum-likelihood mean and (biased) variance of every feature within every
 class, plus the class priors.
 
 .. math::
-    \operatorname{jll}(x, c) = \log \pi_c
+    \mathrm{jll}(x, c) = \log \pi_c
       - \frac12 \sum_{j=1}^{d}\left[\log(2\pi\sigma^2_{cj})
         + \frac{(x_j - \mu_{cj})^2}{\sigma^2_{cj}}\right]
 
-:meth:`predict` returns :math:`\arg\max_c \operatorname{jll}(x, c)`;
+:meth:`predict` returns :math:`\arg\max_c \mathrm{jll}(x, c)`;
 :meth:`predict_proba` normalises with ``logsumexp`` over the classes.
 
 A variance floor ``epsilon_ = var_smoothing * max_j Var[X[:, j]]`` is added to
@@ -50,9 +50,9 @@ def _gaussian_log_density(
 def _joint_log_likelihood(
     X: FloatArray, mean: FloatArray, var: FloatArray, log_prior: FloatArray
 ) -> FloatArray:
-    r"""Unnormalised log-posterior :math:`\operatorname{jll}(x, c)`, shape ``(n, K)``.
+    r"""Unnormalised log-posterior :math:`\mathrm{jll}(x, c)`, shape ``(n, K)``.
 
-    :math:`\operatorname{jll}(x, c) = \log \pi_c
+    :math:`\mathrm{jll}(x, c) = \log \pi_c
     + \sum_j \log \mathcal{N}(x_j; \mu_{cj}, \sigma^2_{cj})` — the log of the
     numerator of Bayes' rule. ``log_prior`` is :math:`\log \pi_c`, shape
     ``(K,)``.
@@ -104,7 +104,7 @@ class GaussianNB(Estimator):
     (biased) sample variance of that feature over the in-class rows. There is
     no objective to minimise. Prediction works in log-space:
     ``predict`` takes the argmax of the joint log-likelihood
-    :math:`\operatorname{jll}(x, c) = \log \pi_c + \sum_j \log
+    :math:`\mathrm{jll}(x, c) = \log \pi_c + \sum_j \log
     \mathcal{N}(x_j; \mu_{cj}, \sigma^2_{cj})` and ``predict_proba``
     normalises it with ``logsumexp`` over the classes. See
     ``docs/derivations/gaussian_nb.md``.

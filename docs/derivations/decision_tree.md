@@ -18,7 +18,7 @@ rather than optimisation.
 | --- | --- | --- |
 | $X$ | $(n, d)$ | design matrix — numeric features only ($X$ is `float64`) |
 | $y$ | $(n,)$ | class labels |
-| $\mathcal{C}$ | $(K,)$ | `classes_` $= \operatorname{np.unique}(y)$, sorted |
+| $\mathcal{C}$ | $(K,)$ | `classes_` $= \mathrm{np.unique}(y)$, sorted |
 | node $t$ | — | a subset $S_t \subseteq \{1, \dots, n\}$ of training indices |
 | $p_{tk}$ | scalar | class-$k$ fraction in $t$: $p_{tk} = \frac{1}{\lvert S_t\rvert}\sum_{i \in S_t}\mathbb{1}[y_i = k]$ |
 | $(j, \tau)$ | — | a split: feature $j$, threshold $\tau$; $x$ goes left iff $x_j \le \tau$ |

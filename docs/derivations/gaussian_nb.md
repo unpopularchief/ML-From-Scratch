@@ -19,7 +19,7 @@ log-posterior.
 | --- | --- | --- |
 | $X$ | $(n, d)$ | training design matrix |
 | $y$ | $(n,)$ | training labels — any number of classes |
-| $\mathcal{C}$ | $(K,)$ | `classes_` $= \operatorname{np.unique}(y)$, sorted |
+| $\mathcal{C}$ | $(K,)$ | `classes_` $= \mathrm{np.unique}(y)$, sorted |
 | $N_c$ | scalar | number of training rows with $y_i = c$ (`class_count_`) |
 | $\mu_{cj}$ | $(K, d)$ | per-class, per-feature mean (`mean_`) |
 | $\sigma^2_{cj}$ | $(K, d)$ | per-class, per-feature variance (`var_`) |
@@ -99,7 +99,7 @@ by zero. Following scikit-learn, add a floor proportional to the largest
 feature variance across the *entire* training set (not per class), which
 makes the floor scale-aware:
 
-$$\varepsilon = \texttt{var\_smoothing} \cdot \max_{j}\operatorname{Var}[X_{:,j}],
+$$\varepsilon = \texttt{var\_smoothing} \cdot \max_{j}\mathrm{Var}[X_{:,j}],
   \qquad \sigma^2_{cj} \leftarrow \hat\sigma^2_{cj} + \varepsilon$$
 
 Default `var_smoothing` $= 10^{-9}$, matching sklearn. `epsilon_` stores the
@@ -112,18 +112,18 @@ prediction is done entirely in logs. Define the **joint log-likelihood** of a
 row $x$ with class $c$ (the log of the *unnormalised* numerator of Bayes'
 rule):
 
-$$\operatorname{jll}(x, c) = \log\pi_c + \sum_{j=1}^{d}\log\mathcal{N}(x_j;\ \mu_{cj}, \sigma^2_{cj})
+$$\mathrm{jll}(x, c) = \log\pi_c + \sum_{j=1}^{d}\log\mathcal{N}(x_j;\ \mu_{cj}, \sigma^2_{cj})
   = \log\pi_c - \frac12\sum_{j=1}^{d}\left[\log(2\pi\sigma^2_{cj})
     + \frac{(x_j - \mu_{cj})^2}{\sigma^2_{cj}}\right]$$
 
-- **`predict`** $= \arg\max_c \operatorname{jll}(x, c)$. The evidence
+- **`predict`** $= \arg\max_c \mathrm{jll}(x, c)$. The evidence
   $\log P(x)$ is the same additive constant for every class in a given row,
   so it does not affect the argmax and never needs to be formed.
 - **`predict_proba` / `predict_log_proba`** need that constant. With
-  $\operatorname{jll}(x)$ the length-$K$ vector for row $x$,
+  $\mathrm{jll}(x)$ the length-$K$ vector for row $x$,
 
-  $$\log P(c \mid x) = \operatorname{jll}(x, c)
-    - \operatorname{logsumexp}_{c'}\operatorname{jll}(x, c'),
+  $$\log P(c \mid x) = \mathrm{jll}(x, c)
+    - \mathrm{logsumexp}_{c'}\mathrm{jll}(x, c'),
     \qquad P(c \mid x) = \exp\big(\log P(c \mid x)\big)$$
 
   using `scratchgrad.utils.math.logsumexp` (stable, from M0). The subtracted
@@ -147,7 +147,7 @@ $$\operatorname{jll}(x, c) = \log\pi_c + \sum_{j=1}^{d}\log\mathcal{N}(x_j;\ \mu
   - `_gaussian_log_density(X, mean, var)` → $(n, K, d)$: the per-feature
     $\log\mathcal{N}$ term.
   - `_joint_log_likelihood(X, mean, var, log_prior)` → $(n, K)$: the
-    $\operatorname{jll}$ above.
+    $\mathrm{jll}$ above.
 - **No `partial_fit`.** sklearn's online/streaming path is out of scope, the
   same way softmax multiclass was deferred for `LogisticRegression`.
 - **Not scale-sensitive.** Each feature gets its own per-class $\mu, \sigma^2$,

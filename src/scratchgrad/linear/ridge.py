@@ -8,7 +8,7 @@ L2 penalty on the weights (but **not** the intercept):
                 + \alpha \lVert w \rVert_2^2 \Big)
 
 where :math:`\tilde{X} = [\mathbf{1} \; X]` folds the intercept into the
-parameter vector :math:`\theta = [b, w]` and :math:`D = \operatorname{diag}
+parameter vector :math:`\theta = [b, w]` and :math:`D = \mathrm{diag}
 (0, 1, \dots, 1)` picks out the penalised (non-intercept) entries. Two
 solvers are offered:
 
@@ -123,7 +123,7 @@ class Ridge(Estimator):
     The objective minimised is
     :math:`J(\theta) = \frac1n\big(\lVert \tilde X\theta - y\rVert_2^2
     + \alpha\lVert w\rVert_2^2\big)`, with :math:`\tilde X = [\mathbf 1\; X]`,
-    :math:`\theta = [b, w]` and :math:`D = \operatorname{diag}(0, 1, \dots, 1)`.
+    :math:`\theta = [b, w]` and :math:`D = \mathrm{diag}(0, 1, \dots, 1)`.
     ``solver="normal"`` solves :math:`(\tilde X^\top\tilde X + \alpha D)\,\theta
     = \tilde X^\top y`; ``solver="gd"`` follows
     :math:`\nabla_\theta J = \frac2n\big(\tilde X^\top(\tilde X\theta - y)
