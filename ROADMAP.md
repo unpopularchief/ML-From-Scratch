@@ -34,7 +34,7 @@ No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 
 ## M2 — Ensembles & unsupervised (`v0.2.0`)
 
-- [ ] RandomForest
+- [x] RandomForest (`RandomForestClassifier`; bootstrap + `max_features`; soft vote; OOB score)
 - [ ] AdaBoost
 - [ ] GradientBoosting
 - [ ] KMeans
