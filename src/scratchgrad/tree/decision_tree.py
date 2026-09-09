@@ -234,13 +234,14 @@ class _Node:
 
     A node is a leaf iff ``left`` is ``None``. ``value`` is the
     class-frequency vector of the training samples that reached it (columns
-    ordered as ``classes_``); ``impurity`` and ``n_samples`` are recorded
-    for inspection and for ``feature_importances_``.
+    ordered as ``classes_``) — or, for ``DecisionTreeRegressor``, the
+    scalar weighted mean of their targets; ``impurity`` and ``n_samples``
+    are recorded for inspection and for ``feature_importances_``.
     """
 
     n_samples: int
     impurity: float
-    value: FloatArray
+    value: FloatArray | float
     feature: int | None = None
     threshold: float | None = None
     left: _Node | None = None
