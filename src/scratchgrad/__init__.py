@@ -8,13 +8,14 @@ from scratchgrad.ensemble import AdaBoostClassifier, RandomForestClassifier
 from scratchgrad.linear import Lasso, LinearRegression, LogisticRegression, Ridge
 from scratchgrad.naive_bayes import GaussianNB
 from scratchgrad.neighbors import KNeighborsClassifier
-from scratchgrad.tree import DecisionTreeClassifier
+from scratchgrad.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 __version__ = "0.0.1"
 
 __all__ = [
     "AdaBoostClassifier",
     "DecisionTreeClassifier",
+    "DecisionTreeRegressor",
     "GaussianNB",
     "KNeighborsClassifier",
     "Lasso",

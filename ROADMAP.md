@@ -36,6 +36,7 @@ No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 
 - [x] RandomForest (`RandomForestClassifier`; bootstrap + `max_features`; soft vote; OOB score)
 - [x] AdaBoost (`AdaBoostClassifier`; SAMME; reweight-and-refit stumps; `staged_predict`)
+- [x] DecisionTreeRegressor (CART; variance / squared-error impurity; mean-value leaves) — shared recursion with the classifier; prerequisite for GradientBoosting
 - [ ] GradientBoosting
 - [ ] KMeans
 - [ ] DBSCAN

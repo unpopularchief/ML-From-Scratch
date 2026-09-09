@@ -6,6 +6,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.tree.DecisionTreeRegressor` — the regression CART tree.
+  Splits maximise the within-node variance reduction
+  `ΔH = H(S_t) − (N_L/N_t)·H(S_L) − (N_R/N_t)·H(S_R)` with `H` the weighted
+  variance of `y` (the `"squared_error"` criterion), which by the law of
+  total variance is the between-group variance of the split, i.e. the
+  greedy drop in training sum-of-squared-error. Each leaf predicts the
+  weighted mean of its targets (the SSE-minimising constant); `score` is
+  `R²`. Shares the split search, `_Node`, `max_features` / `random_state`
+  per-node subsampling, and the `sample_weight` hook with
+  `DecisionTreeClassifier` — exact scikit-learn parity on the
+  deterministic path while nodes stay large, held-out-`R²` tolerance once
+  they get small enough for several features to tie bit-for-bit (or once
+  `max_features` makes the RNG streams diverge).
+  `absolute_error` / `friedman_mse` / `poisson` are out of scope.
+  Prerequisite for `GradientBoosting` and a future `RandomForestRegressor`.
+  Derivation: `docs/derivations/decision_tree_regressor.md`; example:
+  `examples/decision_tree_regressor.py`.
 - `scratchgrad.ensemble.AdaBoostClassifier` — AdaBoost (SAMME): forward
   stagewise fitting of a multi-class exponential loss with decision-tree
   weak learners (a depth-1 stump by default, `max_depth` exposed). Each
@@ -137,4 +154,3 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 <!-- Repo: https://github.com/unpopularchief/ML-From-Scratch
      [Unreleased] compare link added once the first commit/tag exists. -->
-
