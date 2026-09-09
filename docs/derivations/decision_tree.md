@@ -135,6 +135,45 @@ diverge, so a seeded tree is reproducible **against itself** but can only
 be checked against scikit-learn by tolerance (held-out accuracy), not
 exact predictions.
 
+## 3b. Sample weights
+
+`fit` takes an optional `sample_weight` $\mathbf w \in \mathbb R_{\ge 0}^n$
+(default: all ones). It is the hook AdaBoost and the other boosting
+ensembles use to refit this tree on an evolving distribution over the same
+rows — "boosting by reweighting" — see
+[`adaboost.md`](adaboost.md). Every count the tree computes becomes a
+**weighted** sum:
+
+- node class counts $\;n_{tk} = \sum_{i \in S_t} w_i\,\mathbb 1[y_i = k]\;$
+  (so the leaf `value` is the weight-normalised class mix);
+- node mass $\;N_t = \sum_{i \in S_t} w_i\;$, total mass
+  $N = \sum_i w_i$;
+- the split score weights each child impurity by its **mass**, not its row
+  count:
+  $\Delta H(j,\tau) = H(S_t) - \frac{W_L}{N_t}H(S_L) - \frac{W_R}{N_t}H(S_R)$
+  with $W_L = \sum_{i \in S_L} w_i$;
+- the `min_impurity_decrease` gate and `feature_importances_` use
+  $\frac{N_t}{N}\Delta H$ with the weighted $N_t, N$.
+
+The **`min_samples_split` / `min_samples_leaf` gates still count rows**, not
+weight — scikit-learn's convention (the weight-fraction gate is
+`min_weight_fraction_leaf`, which this estimator omits). **Zero-weight rows
+are dropped before fitting** (scikit-learn does the same): they change no
+count, and keeping them would only add spurious candidate thresholds
+between real feature values.
+
+**Parity.** With `sample_weight=None` the weighted sums collapse to the
+row-count versions exactly — a weighted fit with all-ones weights is
+byte-identical to the M1 tree. With integer weights the tree is identical
+to one fit on the row-duplicated dataset (same weighted counts, same
+candidate thresholds, same deterministic tie-break). Against scikit-learn,
+a *shallow* weighted tree still matches exactly, but deeper down a
+reweighted node routinely has several equal-gain splits (any of a few
+features isolates the same high-weight outlier); our lowest-index
+tie-break and scikit-learn's RNG feature permutation then diverge, so deep
+weighted trees are comparable only by held-out accuracy — exactly the
+`max_features` situation of §3a.
+
 ## 4. Recursion, stopping, leaves
 
 ```
@@ -232,14 +271,16 @@ _build(X, y_idx, depth):
     feature_importances_[j] += (len(y_idx) / n) · gain
     return node
 
-fit(X, y):
+fit(X, y, sample_weight=None):
     validate hyperparameters
     X, y = check_X_y(X, y)
+    w   = check_sample_weight(sample_weight, n)     # None -> ones
     classes_ = unique(y);  y_idx = searchsorted(classes_, y)
+    keep = w > 0;  X, y_idx, w = X[keep], y_idx[keep], w[keep]   # drop zero-weight rows
     m   = _resolve_max_features(max_features, d)
     rng = None if (max_features is None and random_state is None) \
                else check_random_state(random_state)
-    tree_ = _build(X, y_idx, depth=0)
+    tree_ = _build(X, y_idx, w, depth=0)                 # w threaded through the recursion
     feature_importances_ /= feature_importances_.sum()   # if any split was made
 
 predict_proba(X):  descend each row to its leaf, return the leaf `value` rows
@@ -259,6 +300,7 @@ impurity math and the split search are unit-tested directly, mirroring the
 | Split search | Tiny 2-D set with an obvious axis-aligned gap → root split is the correct $(j, \tau)$; `_best_split` against an independent $O(n^2)$ brute-force version on random nodes. |
 | Independent reference | A dead-simple recursive builder (brute-force impurity at every candidate threshold, no sweep) agrees with `tree_` structure and `predict` on seeded data — the gradient-check analogue. |
 | Determinism | Same data + params → structurally identical tree across runs. Seeded (`max_features` set + `random_state`): same seed → identical tree, different seed → (generally) different tree; `max_features=None, random_state=None` tree is unchanged from the unseeded path. |
+| Sample weights | `check_sample_weight` validates shape / non-negativity / not-all-zero. `sample_weight=None` ≡ all-ones ≡ the pre-weighting tree. Integer weights ≡ a fit on the row-duplicated dataset (structure, `predict`, `feature_importances_`). Zero-weight rows ≡ dropped rows. A conflicting-label pair with unequal weights → leaf `value` is the weight-normalised mix. |
 | Feature subsampling | `max_features` resolves `"sqrt"`/`"log2"`/`int`/`float`/`None` to the right $m$; every realised split is on one of that node's $m$ drawn features; `max_features=1` still fits separable data given enough depth; bad `max_features` (string not in the set, `int` out of $[1, d]$, `float` outside $(0, 1]$) raises. |
 | Regularisers | Unbounded tree → 100% train accuracy on separable data; `max_depth=1` → a stump (`max_depth_ == 1`, both children leaves); large `min_impurity_decrease` / `min_samples_split > n` → root is a leaf; every leaf has $\ge$ `min_samples_leaf` rows. |
 | proba | rows sum to 1; shape $(m, K)$; `predict == classes_[argmax(proba)]`. |
@@ -266,7 +308,7 @@ impurity math and the split search are unit-tested directly, mirroring the
 | Contract | `NotFittedError` before `fit`; `fit` returns self; hyperparameters unmutated; feature-count mismatch in `predict` raises; bad `criterion`, `max_depth < 1`, `min_samples_split < 2`, `min_samples_leaf < 1`, `min_impurity_decrease < 0` raise; `repr` round-trips. |
 | Behavioral | `make_moons(noise=0.2)`: a depth-capped tree beats a `LogisticRegression` baseline on held-out data. 3-class `make_blobs` → high held-out accuracy. |
 | Edge | single feature; single sample (→ leaf); constant features (→ leaf); single-class `y` (→ leaf, impurity 0); duplicate rows with conflicting labels (→ mixed-distribution leaf). |
-| Reference (`-m reference`) | On the deterministic path (`max_features=None`): `predict` (exact) and `predict_proba` (`rtol`) match `sklearn.tree.DecisionTreeClassifier` for both criteria across several `max_depth`, plus a `min_samples_leaf` case. `feature_importances_` is checked only approximately (`atol`): when two features tie for the best split, our "lowest index" rule and scikit-learn's RNG feature permutation can attribute that node's decrease to different features even though the predictions are identical. With `max_features` set the two RNGs diverge, so parity is by held-out-accuracy tolerance only. |
+| Reference (`-m reference`) | On the deterministic path (`max_features=None`): `predict` (exact) and `predict_proba` (`rtol`) match `sklearn.tree.DecisionTreeClassifier` for both criteria across several `max_depth`, plus a `min_samples_leaf` case. `feature_importances_` is checked only approximately (`atol`): when two features tie for the best split, our "lowest index" rule and scikit-learn's RNG feature permutation can attribute that node's decrease to different features even though the predictions are identical. With `max_features` set the two RNGs diverge, so parity is by held-out-accuracy tolerance only. A *shallow* weighted (`sample_weight`) tree matches `predict`/`predict_proba` exactly; a *deep* one is checked by held-out-accuracy tolerance (equal-gain ties again). |
 
 Plus `examples/decision_tree.py` — seeded: the train/test accuracy curve
 across `max_depth` (the overfitting story), the fitted tree printed as
@@ -282,6 +324,10 @@ indented text, and `feature_importances_`.
   decorrelate its trees. scikit-learn's *other* RNG use — random
   tie-breaking among equal-gain splits — is still not copied; our
   tie-break stays deterministic (lowest feature index).
+- **`sample_weight`** — *now supported* (§3b), added ahead of `AdaBoost`,
+  which reweights this tree each round. scikit-learn's companion
+  `min_weight_fraction_leaf` (a weighted-mass leaf gate) is still omitted —
+  the `min_samples_*` gates stay on raw row counts.
 - **`ccp_alpha`** (cost-complexity pruning), **`class_weight`**,
   **`splitter`** (best only), **float `min_samples_*`** (fractions),
   **categorical features** — all standard scikit-learn options left out to

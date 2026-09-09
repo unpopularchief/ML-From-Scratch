@@ -114,6 +114,49 @@ def check_array(X: object) -> FeatureMatrix:
     return X_arr
 
 
+def check_sample_weight(sample_weight: object, n_samples: int) -> np.ndarray:
+    """Validate per-sample weights, or synthesise uniform ones.
+
+    Several estimators (``DecisionTreeClassifier``, and the boosting
+    ensembles that reweight it) accept a ``sample_weight`` vector that
+    scales each row's contribution to the fit. This turns whatever the
+    caller passes into a length-``n_samples`` ``float64`` array, or returns
+    all-ones when it is ``None``.
+
+    Parameters
+    ----------
+    sample_weight : array-like of shape (n_samples,) or None
+        Non-negative weights, not all zero. ``None`` yields ``np.ones``.
+    n_samples : int
+        The number of rows the weights must align with.
+
+    Returns
+    -------
+    ndarray of shape (n_samples,), dtype float64
+
+    Raises
+    ------
+    ValueError
+        If ``sample_weight`` is not 1D of length ``n_samples``, contains
+        NaN/inf or a negative entry, or sums to zero.
+
+    """
+    if sample_weight is None:
+        return np.ones(n_samples, dtype=np.float64)
+    w = np.asarray(sample_weight, dtype=np.float64)
+    if w.shape != (n_samples,):
+        raise ValueError(
+            f"sample_weight must have shape ({n_samples},), got {w.shape}."
+        )
+    if not np.all(np.isfinite(w)):
+        raise ValueError("sample_weight contains NaN or infinite values.")
+    if np.any(w < 0.0):
+        raise ValueError("sample_weight must be non-negative.")
+    if w.sum() == 0.0:
+        raise ValueError("sample_weight sums to zero.")
+    return w
+
+
 def check_is_fitted(estimator: object, attributes: str | list[str]) -> None:
     """Raise ``NotFittedError`` unless the given learned attribute(s) exist.
 

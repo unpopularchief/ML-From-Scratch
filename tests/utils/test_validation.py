@@ -10,6 +10,7 @@ from scratchgrad.utils.validation import (
     check_array,
     check_is_fitted,
     check_random_state,
+    check_sample_weight,
     check_X_y,
 )
 
@@ -72,6 +73,42 @@ class TestCheckXY:
     def test_rejects_nan_in_y(self) -> None:
         with pytest.raises(ValueError, match="NaN"):
             check_X_y([[1.0], [2.0]], [0.0, np.nan])
+
+
+class TestCheckSampleWeight:
+    def test_none_returns_ones(self) -> None:
+        w = check_sample_weight(None, 4)
+        np.testing.assert_array_equal(w, np.ones(4))
+        assert w.dtype == np.float64
+
+    def test_valid_weights_coerced_to_float64(self) -> None:
+        w = check_sample_weight([1, 2, 3], 3)
+        assert w.dtype == np.float64
+        np.testing.assert_array_equal(w, [1.0, 2.0, 3.0])
+
+    def test_zero_entries_are_allowed(self) -> None:
+        w = check_sample_weight([0.0, 1.0, 0.0], 3)
+        np.testing.assert_array_equal(w, [0.0, 1.0, 0.0])
+
+    def test_rejects_wrong_length(self) -> None:
+        with pytest.raises(ValueError, match=r"shape \(3,\)"):
+            check_sample_weight([1.0, 2.0], 3)
+
+    def test_rejects_2d(self) -> None:
+        with pytest.raises(ValueError, match="shape"):
+            check_sample_weight([[1.0], [2.0]], 2)
+
+    def test_rejects_negative(self) -> None:
+        with pytest.raises(ValueError, match="non-negative"):
+            check_sample_weight([1.0, -0.5, 1.0], 3)
+
+    def test_rejects_all_zero(self) -> None:
+        with pytest.raises(ValueError, match="sums to zero"):
+            check_sample_weight(np.zeros(4), 4)
+
+    def test_rejects_nan(self) -> None:
+        with pytest.raises(ValueError, match="NaN"):
+            check_sample_weight([1.0, np.nan, 1.0], 3)
 
 
 class TestCheckIsFitted:

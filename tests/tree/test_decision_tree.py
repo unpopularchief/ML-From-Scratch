@@ -263,6 +263,72 @@ class TestFeatureSubsampling:
         assert _tree_equal(before.tree_, after.tree_)
 
 
+class TestSampleWeight:
+    def test_none_equals_explicit_ones(self) -> None:
+        X, y = make_blobs(n_samples=120, centers=3, cluster_std=2.0, random_state=0)
+        a = DecisionTreeClassifier(max_depth=4).fit(X, y)
+        b = DecisionTreeClassifier(max_depth=4).fit(X, y, sample_weight=np.ones(120))
+        assert _tree_equal(a.tree_, b.tree_)
+
+    def test_integer_weights_equal_row_duplication(self, rng) -> None:
+        # The correctness analogue for weighting: a weighted fit must match a
+        # fit on the dataset with each row physically repeated w_i times.
+        X, y = make_blobs(n_samples=80, centers=3, cluster_std=2.5, random_state=1)
+        w = rng.integers(1, 4, size=80)
+        X_query, _ = make_blobs(
+            n_samples=40, centers=3, cluster_std=2.5, random_state=2
+        )
+
+        weighted = DecisionTreeClassifier().fit(X, y, sample_weight=w)
+        duplicated = DecisionTreeClassifier().fit(
+            np.repeat(X, w, axis=0), np.repeat(y, w)
+        )
+
+        assert _tree_equal(weighted.tree_, duplicated.tree_)
+        np.testing.assert_array_equal(
+            weighted.predict(X_query), duplicated.predict(X_query)
+        )
+        np.testing.assert_allclose(
+            weighted.feature_importances_, duplicated.feature_importances_
+        )
+
+    def test_zero_weight_rows_are_dropped_outright(self, rng) -> None:
+        # A zero-weight row is removed before fitting (as scikit-learn does),
+        # so a weight-0/1 mask gives exactly the tree fit on the kept rows.
+        X, y = make_blobs(n_samples=100, centers=2, cluster_std=2.0, random_state=3)
+        keep = rng.random(100) > 0.3
+        w = keep.astype(np.float64)
+
+        with_zeros = DecisionTreeClassifier(max_depth=5).fit(X, y, sample_weight=w)
+        subset = DecisionTreeClassifier(max_depth=5).fit(X[keep], y[keep])
+        assert _tree_equal(with_zeros.tree_, subset.tree_)
+
+    def test_leaf_value_is_the_weighted_class_distribution(self) -> None:
+        # Two identical rows with conflicting labels -> the root stays a leaf,
+        # and its value is the weight-normalised class mix, not the row mix.
+        X = np.array([[0.0], [0.0]])
+        y = np.array([0, 1])
+        model = DecisionTreeClassifier().fit(X, y, sample_weight=np.array([3.0, 1.0]))
+        assert model.tree_.is_leaf
+        np.testing.assert_allclose(model.tree_.value, [0.75, 0.25])
+        assert model.predict(np.array([[0.0]]))[0] == 0.0
+
+    def test_feature_importances_sum_to_one_with_weights(self, rng) -> None:
+        X, y = make_blobs(n_samples=150, centers=3, random_state=0)
+        w = rng.random(150) + 0.1
+        model = DecisionTreeClassifier(max_depth=5).fit(X, y, sample_weight=w)
+        assert model.feature_importances_.sum() == pytest.approx(1.0)
+
+    @pytest.mark.parametrize(
+        "bad",
+        [np.ones(5), np.full(20, -1.0), np.zeros(20), np.array([np.nan] * 20)],
+    )
+    def test_bad_sample_weight_raises(self, bad) -> None:
+        X, y = make_blobs(n_samples=20, centers=2, random_state=0)
+        with pytest.raises(ValueError, match="sample_weight"):
+            DecisionTreeClassifier().fit(X, y, sample_weight=bad)
+
+
 class TestRegularizers:
     def test_unbounded_tree_fits_training_data_exactly(self) -> None:
         X, y = make_blobs(n_samples=150, centers=3, cluster_std=1.0, random_state=0)

@@ -86,6 +86,60 @@ def test_min_samples_leaf_matches_sklearn() -> None:
     np.testing.assert_array_equal(ours.predict(X_query), theirs.predict(X_query))
 
 
+@pytest.mark.parametrize("criterion", ["gini", "entropy"])
+def test_shallow_sample_weight_matches_sklearn(criterion) -> None:
+    # A shallow weighted tree: the best split at each node is still unique, so
+    # predictions and proba match scikit-learn exactly.
+    tree = pytest.importorskip("sklearn.tree")
+    rng = np.random.default_rng(0)
+
+    X, y = make_blobs(
+        n_samples=240, n_features=4, centers=3, cluster_std=3.0, random_state=0
+    )
+    X_query, _ = make_blobs(
+        n_samples=60, n_features=4, centers=3, cluster_std=3.0, random_state=1
+    )
+    w = rng.uniform(0.2, 3.0, size=X.shape[0])
+
+    ours = DecisionTreeClassifier(criterion=criterion, max_depth=2).fit(
+        X, y, sample_weight=w
+    )
+    theirs = tree.DecisionTreeClassifier(
+        criterion=criterion, max_depth=2, random_state=0
+    ).fit(X, y, sample_weight=w)
+
+    np.testing.assert_array_equal(ours.predict(X_query), theirs.predict(X_query))
+    np.testing.assert_allclose(
+        ours.predict_proba(X_query), theirs.predict_proba(X_query), rtol=1e-6
+    )
+
+
+def test_deep_sample_weight_tracks_sklearn_accuracy() -> None:
+    # Deeper down, a reweighted node often has several equal-gain splits (e.g.
+    # any of a few features isolates the same outlier). Our "lowest index"
+    # tie-break and scikit-learn's RNG permutation then pick different splits,
+    # so only held-out accuracy is comparable — as with max_features.
+    tree = pytest.importorskip("sklearn.tree")
+    rng = np.random.default_rng(1)
+
+    X, y = make_blobs(
+        n_samples=400, n_features=5, centers=3, cluster_std=4.0, random_state=5
+    )
+    X_test, y_test = make_blobs(
+        n_samples=200, n_features=5, centers=3, cluster_std=4.0, random_state=6
+    )
+    w = rng.uniform(0.2, 3.0, size=X.shape[0])
+
+    ours = DecisionTreeClassifier(max_depth=6).fit(X, y, sample_weight=w)
+    theirs = tree.DecisionTreeClassifier(max_depth=6, random_state=0).fit(
+        X, y, sample_weight=w
+    )
+
+    assert ours.feature_importances_.sum() == pytest.approx(1.0)
+    ours_acc = np.mean(ours.predict(X_test) == y_test)
+    assert abs(ours_acc - theirs.score(X_test, y_test)) < 0.1
+
+
 def test_max_features_tracks_sklearn_accuracy() -> None:
     # With max_features set, our NumPy Generator and scikit-learn's internal C
     # RNG produce different feature draws, so predictions cannot match exactly.
