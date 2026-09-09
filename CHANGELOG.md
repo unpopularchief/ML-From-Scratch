@@ -6,6 +6,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.ensemble.AdaBoostClassifier` — AdaBoost (SAMME): forward
+  stagewise fitting of a multi-class exponential loss with decision-tree
+  weak learners (a depth-1 stump by default, `max_depth` exposed). Each
+  round refits the tree on the rows reweighted toward the previous round's
+  mistakes and adds it to the vote with weight
+  `alpha_m = log((1 - err_m) / err_m) + log(K - 1)`; `learning_rate`
+  shrinks the step. Stops early on a perfect round or a round that cannot
+  beat random guessing (and raises if that is the first round).
+  `decision_function`, `predict_proba` (scikit-learn's monotone score
+  calibration), `staged_predict` / `staged_score`, `estimator_weights_` /
+  `estimator_errors_`, `alpha`-weighted `feature_importances_`.
+  Multiclass; `K = 2` reduces to classic discrete AdaBoost; matches
+  `sklearn.ensemble.AdaBoostClassifier` (SAMME) closely on the
+  deterministic stump path. No randomness, so no `random_state`; serial.
+  `AdaBoostRegressor` and `SAMME.R` are out of scope. Derivation:
+  `docs/derivations/adaboost.md`; example: `examples/adaboost.py`.
 - `scratchgrad.tree.DecisionTreeClassifier.fit` gains an optional
   `sample_weight` argument — non-negative per-row weights that scale each
   row's contribution to the class counts and the impurity decrease (the
