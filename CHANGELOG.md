@@ -6,6 +6,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.tree.DecisionTreeClassifier.fit` gains an optional
+  `sample_weight` argument — non-negative per-row weights that scale each
+  row's contribution to the class counts and the impurity decrease (the
+  `min_samples_*` gates still count rows). `None` is byte-identical to the
+  previous fit; integer weights match a fit on the row-duplicated dataset;
+  zero-weight rows are dropped, as scikit-learn does. This is the
+  reweighting hook the M2 boosting ensembles (AdaBoost next) build on.
+  Derivation: `docs/derivations/decision_tree.md` §3b.
+- `scratchgrad.utils.check_sample_weight` — shared validator that coerces a
+  `sample_weight` argument to a length-`n` float64 array (or synthesises
+  all-ones), rejecting wrong shapes, negatives, and all-zero input.
 - `scratchgrad.ensemble.RandomForestClassifier` — a random forest: an
   ensemble of `DecisionTreeClassifier`s, each grown on a bootstrap
   resample of the rows and drawing a random `max_features` subset

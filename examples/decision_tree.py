@@ -12,6 +12,8 @@ Run:
 
 from __future__ import annotations
 
+import numpy as np
+
 from scratchgrad.datasets import make_moons
 from scratchgrad.preprocessing import train_test_split
 from scratchgrad.tree import DecisionTreeClassifier
@@ -63,6 +65,22 @@ def main() -> None:
             max_depth=8, max_features=1, random_state=seed
         ).fit(X_train, y_train)
         print(f"  random_state={seed}  test acc={sub.score(X_test, y_test):.4f}")
+
+    # sample_weight: up-weighting one class makes the tree work harder to get
+    # it right (recall for that class rises, at the cost of the other's). This
+    # is the hook AdaBoost uses to refocus each new stump on hard examples.
+    print("\nsample_weight: up-weighting class 1")
+    for factor in (1.0, 3.0, 10.0):
+        w = np.where(y_train == 1, factor, 1.0)
+        model = DecisionTreeClassifier(max_depth=3)
+        model.fit(X_train, y_train, sample_weight=w)
+        pred = model.predict(X_test)
+        recall_1 = np.mean(pred[y_test == 1] == 1)
+        recall_0 = np.mean(pred[y_test == 0] == 0)
+        print(
+            f"  weight(class 1)={factor:<4}  recall class 1={recall_1:.3f}  "
+            f"recall class 0={recall_0:.3f}"
+        )
 
 
 if __name__ == "__main__":

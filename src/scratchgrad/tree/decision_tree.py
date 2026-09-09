@@ -19,7 +19,10 @@ Building the optimal tree is NP-complete; this greedy heuristic is the
 standard practical substitute. ``max_features`` subsamples the candidate
 features at each node (seeded by ``random_state``) — the mechanism a
 random forest uses to decorrelate its trees; there is no cost-complexity
-pruning (``ccp_alpha``). See ``docs/derivations/decision_tree.md``.
+pruning (``ccp_alpha``). ``fit`` accepts a ``sample_weight`` vector that
+scales each row's contribution to the class counts and the impurity
+decrease — the hook the boosting ensembles use to reweight their weak
+learner. See ``docs/derivations/decision_tree.md``.
 """
 
 from __future__ import annotations
@@ -36,6 +39,7 @@ from scratchgrad.utils.validation import (
     check_array,
     check_is_fitted,
     check_random_state,
+    check_sample_weight,
     check_X_y,
 )
 
@@ -131,6 +135,7 @@ def _best_split(
     min_samples_leaf: int,
     max_features: int | None = None,
     rng: np.random.Generator | None = None,
+    sample_weight: FloatArray | None = None,
 ) -> tuple[int | None, float, float]:
     r"""Best ``(feature, threshold)`` split of a node, and its impurity decrease.
 
@@ -148,18 +153,30 @@ def _best_split(
     skipped without spending budget; the sweep stops once ``max_features``
     non-constant features have been scored (``None`` = no limit).
 
+    ``sample_weight`` (``None`` = all ones) scales each row: the class
+    counts become weighted sums and the child impurities are weighted by
+    each side's total weight, so :math:`\Delta H` matches scikit-learn's
+    weighted form. The ``min_samples_leaf`` gate still counts *rows*, not
+    weight (scikit-learn's convention — the weighted gate is the omitted
+    ``min_weight_fraction_leaf``).
+
     Ties are broken towards the lowest feature index, then the lowest
     threshold — independently of the sweep order, so the result depends on
     the drawn *subset* but not on its permutation.
     """
     n_t = X_node.shape[0]
     n_features = X_node.shape[1]
-    parent_counts = np.bincount(y_idx, minlength=n_classes).astype(np.float64)
+    if sample_weight is None:
+        sample_weight = np.ones(n_t)
+    w_total = sample_weight.sum()
+    parent_counts = np.bincount(
+        y_idx, weights=sample_weight, minlength=n_classes
+    ).astype(np.float64)
     parent_impurity = float(impurity_fn(parent_counts))  # H(S_t)
-    one_hot = np.eye(n_classes)[y_idx]  # (n_t, n_classes)
+    one_hot = np.eye(n_classes)[y_idx] * sample_weight[:, None]  # weighted, (n_t, K)
 
-    n_left = np.arange(1, n_t)  # left-partition size at each candidate cut
-    n_right = n_t - n_left
+    row_left = np.arange(1, n_t)  # left-partition row count at each candidate cut
+    row_right = n_t - row_left
 
     feature_order = range(n_features) if rng is None else rng.permutation(n_features)
 
@@ -175,16 +192,20 @@ def _best_split(
 
         left_counts = np.cumsum(one_hot[order], axis=0)[:-1]  # rows order[:i+1]
         right_counts = parent_counts - left_counts  # (n_t - 1, n_classes)
+        w_left = left_counts.sum(axis=1)  # total weight on the left at each cut
+        w_right = w_total - w_left
 
-        # weighted child impurity at every cut:  (n_L/n_t) H(S_L) + (n_R/n_t) H(S_R)
+        # weighted child impurity at every cut:  (w_L/w_t) H(S_L) + (w_R/w_t) H(S_R)
         child_impurity = (
-            n_left * impurity_fn(left_counts) + n_right * impurity_fn(right_counts)
-        ) / n_t
+            w_left * impurity_fn(left_counts) + w_right * impurity_fn(right_counts)
+        ) / w_total
         gains = parent_impurity - child_impurity  # ΔH at every cut
 
         # a split is valid only strictly between two distinct values and only
         # if both children keep at least min_samples_leaf rows
-        valid = distinct & (n_left >= min_samples_leaf) & (n_right >= min_samples_leaf)
+        valid = (
+            distinct & (row_left >= min_samples_leaf) & (row_right >= min_samples_leaf)
+        )
         if valid.any():
             masked = np.where(valid, gains, -np.inf)
             i = int(np.argmax(masked))  # first maximal cut -> lowest threshold
@@ -296,7 +317,10 @@ class DecisionTreeClassifier(Estimator):
     deterministically (lowest feature index, then lowest threshold), unlike
     scikit-learn which permutes features with its RNG. ``max_features``
     (seeded by ``random_state``) subsamples the candidate features per
-    node; there is no cost-complexity pruning. Full walkthrough:
+    node; there is no cost-complexity pruning. :meth:`fit` takes an
+    optional ``sample_weight`` — the reweighting hook the boosting
+    ensembles use — which scales the class counts and the impurity
+    decrease but not the ``min_samples_*`` gates. Full walkthrough:
     ``docs/derivations/decision_tree.md``.
 
     Examples
@@ -332,7 +356,12 @@ class DecisionTreeClassifier(Estimator):
         self.max_features = max_features
         self.random_state = random_state
 
-    def fit(self, X: FeatureMatrix, y: TargetVector) -> DecisionTreeClassifier:
+    def fit(
+        self,
+        X: FeatureMatrix,
+        y: TargetVector,
+        sample_weight: FloatArray | None = None,
+    ) -> DecisionTreeClassifier:
         """Grow the tree on ``X``, ``y``.
 
         Parameters
@@ -341,6 +370,13 @@ class DecisionTreeClassifier(Estimator):
             Training design matrix.
         y : ndarray of shape (n_samples,)
             Training labels — any number of classes.
+        sample_weight : ndarray of shape (n_samples,), optional
+            Non-negative per-row weights (not all zero). ``None`` (the
+            default) weights every row equally, and the fit is then
+            byte-identical to calling ``fit(X, y)`` on the pre-weighting
+            estimator. Weighted rows scale the class counts and the
+            impurity decrease; the ``min_samples_*`` gates still count
+            rows, not weight.
 
         Returns
         -------
@@ -351,9 +387,11 @@ class DecisionTreeClassifier(Estimator):
         ValueError
             If ``criterion`` is unknown, ``max_depth`` is less than 1,
             ``min_samples_split`` is less than 2, ``min_samples_leaf`` is
-            less than 1, ``min_impurity_decrease`` is negative, or
+            less than 1, ``min_impurity_decrease`` is negative,
             ``max_features`` is not a valid string / an int outside
-            ``[1, n_features]`` / a float outside ``(0, 1]``.
+            ``[1, n_features]`` / a float outside ``(0, 1]``, or
+            ``sample_weight`` has the wrong shape / is negative / sums to
+            zero.
 
         """
         if self.criterion not in _CRITERIA:
@@ -376,10 +414,18 @@ class DecisionTreeClassifier(Estimator):
             )
 
         X, y = check_X_y(X, y)
+        sample_weight = check_sample_weight(sample_weight, X.shape[0])
         self.classes_ = np.unique(y)
         self.n_classes_ = self.classes_.shape[0]
         self.n_features_in_ = X.shape[1]
         y_idx = np.searchsorted(self.classes_, y)  # labels -> 0 .. K-1
+
+        # Drop zero-weight rows outright (scikit-learn does the same): they
+        # contribute nothing to any count, and leaving them in would add
+        # spurious candidate split points between real feature values.
+        if not np.all(sample_weight > 0.0):
+            keep = sample_weight > 0.0
+            X, y_idx, sample_weight = X[keep], y_idx[keep], sample_weight[keep]
 
         self.max_features_ = _resolve_max_features(
             self.max_features, self.n_features_in_
@@ -393,10 +439,10 @@ class DecisionTreeClassifier(Estimator):
         )
 
         self._impurity_fn = _CRITERIA[self.criterion]
-        self._n_total = X.shape[0]
+        self._w_total = float(sample_weight.sum())  # total weight (n if uniform)
         self._importances = np.zeros(self.n_features_in_)
 
-        self.tree_ = self._build(X, y_idx, depth=0)
+        self.tree_ = self._build(X, y_idx, sample_weight, depth=0)
         self.max_depth_ = _depth(self.tree_)
 
         total = self._importances.sum()
@@ -457,11 +503,21 @@ class DecisionTreeClassifier(Estimator):
         """
         return accuracy_score(y, self.predict(X))
 
-    def _build(self, X: FloatArray, y_idx: IntArray, depth: int) -> _Node:
-        """Recursively grow the subtree for the samples ``(X, y_idx)``."""
+    def _build(
+        self, X: FloatArray, y_idx: IntArray, w: FloatArray, depth: int
+    ) -> _Node:
+        """Recursively grow the subtree for the samples ``(X, y_idx)``.
+
+        ``w`` is the sample-weight slice for this node's rows; with uniform
+        weights it is all ones and every quantity below reduces to the
+        row-count version.
+        """
         n_samples = X.shape[0]
-        counts = np.bincount(y_idx, minlength=self.n_classes_).astype(np.float64)
-        value = counts / n_samples  # predicted class distribution here
+        counts = np.bincount(y_idx, weights=w, minlength=self.n_classes_).astype(
+            np.float64
+        )
+        w_node = counts.sum()  # total weight reaching this node (n_samples if uniform)
+        value = counts / w_node  # predicted class distribution here
         impurity = float(self._impurity_fn(counts))  # H(S_t)
         node = _Node(n_samples=n_samples, impurity=impurity, value=value)
 
@@ -477,19 +533,22 @@ class DecisionTreeClassifier(Estimator):
             self.min_samples_leaf,
             self.max_features_,
             self._rng,
+            w,
         )
         if feature is None:
             return node  # no valid split -> leaf
-        # scikit-learn-scaled weighted impurity decrease
-        if (n_samples / self._n_total) * gain < self.min_impurity_decrease:
+        # scikit-learn-scaled weighted impurity decrease:  (N_t / N) · ΔH
+        if (w_node / self._w_total) * gain < self.min_impurity_decrease:
             return node  # split too weak -> leaf
 
         left_mask = X[:, feature] <= threshold
         node.feature = feature
         node.threshold = threshold
-        node.left = self._build(X[left_mask], y_idx[left_mask], depth + 1)
-        node.right = self._build(X[~left_mask], y_idx[~left_mask], depth + 1)
-        self._importances[feature] += (n_samples / self._n_total) * gain  # N_t/N · ΔH
+        node.left = self._build(X[left_mask], y_idx[left_mask], w[left_mask], depth + 1)
+        node.right = self._build(
+            X[~left_mask], y_idx[~left_mask], w[~left_mask], depth + 1
+        )
+        self._importances[feature] += (w_node / self._w_total) * gain  # (N_t/N) · ΔH
         return node
 
 
