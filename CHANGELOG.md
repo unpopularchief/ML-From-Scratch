@@ -6,6 +6,31 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.ensemble.GradientBoostingClassifier` — gradient boosting
+  for classification: functional gradient descent on the log loss. Each
+  round fits a `DecisionTreeRegressor` to the pseudo-residual (the
+  negative loss gradient w.r.t. the raw score — `y − p` for the binomial
+  deviance), then replaces the tree's leaf values with a one-step Newton
+  estimate of the loss-minimising constant on each leaf ("TreeBoost");
+  `learning_rate` shrinks the update. Multiclass fits one tree per class
+  per round against the multinomial-deviance residuals (with the
+  `(K−1)/K` leaf factor); `K = 2` uses the single-score binomial path.
+  `subsample < 1` fits each tree on a fresh row subsample (stochastic
+  gradient boosting), seeded by `random_state`. `init` is the weighted
+  base-rate log-odds / log-priors (`"prior"`) or zero. `sample_weight`
+  flows through the init score, the Newton leaves, the base fits, and
+  `train_score_` (the per-round training deviance). `decision_function`,
+  `predict_proba` (a real posterior, unlike AdaBoost's score calibration),
+  `staged_predict` / `staged_predict_proba` /
+  `staged_decision_function`, `feature_importances_`. Held-out accuracy
+  and log loss track `sklearn.ensemble.GradientBoostingClassifier` to a
+  tolerance (their `friedman_mse` splitter and RNG feature order differ
+  from our `squared_error` base tree, so trees are not identical).
+  Log-loss only — `loss="exponential"` (AdaBoost) and
+  `GradientBoostingRegressor` are out of scope. The other half of the M2
+  "supervised ensembles" track. Derivation:
+  `docs/derivations/gradient_boosting.md`; example:
+  `examples/gradient_boosting.py`.
 - `scratchgrad.tree.DecisionTreeRegressor` — the regression CART tree.
   Splits maximise the within-node variance reduction
   `ΔH = H(S_t) − (N_L/N_t)·H(S_L) − (N_R/N_t)·H(S_R)` with `H` the weighted
