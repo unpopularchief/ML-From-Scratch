@@ -18,7 +18,8 @@ transforms, dataset generators, the gradient-checking test tool) and M1
 `Lasso`, `LogisticRegression`, `KNeighborsClassifier`, `GaussianNB`,
 `DecisionTreeClassifier`) are complete and tagged `v0.1.0`. M2 adds
 ensembles and unsupervised methods; `RandomForestClassifier`,
-`AdaBoostClassifier`, and `DecisionTreeRegressor` have landed.
+`AdaBoostClassifier`, `DecisionTreeRegressor`, and
+`GradientBoostingClassifier` have landed.
 See the table below, [`ROADMAP.md`](ROADMAP.md) for what's planned and in
 what order, and [`plan.md`](plan.md) for the full project plan
 (architecture, testing strategy, conventions, and the mistakes it's
@@ -77,6 +78,7 @@ what's planned next.
 | DecisionTreeRegressor | `scratchgrad.tree` | [decision_tree_regressor.md](docs/derivations/decision_tree_regressor.md) | CART; greedy binary splits on variance (squared-error) reduction; mean-value leaves; `R^2` score; shares the classifier's `max_features` / `sample_weight` machinery |
 | RandomForestClassifier | `scratchgrad.ensemble` | [random_forest.md](docs/derivations/random_forest.md) | Bagged, feature-subsampled CART trees; soft voting; out-of-bag score; the variance-reduction ensemble |
 | AdaBoostClassifier | `scratchgrad.ensemble` | [adaboost.md](docs/derivations/adaboost.md) | SAMME; stagewise fit of the multi-class exponential loss; reweight-and-refit stumps; `alpha`-weighted vote; `staged_predict` |
+| GradientBoostingClassifier | `scratchgrad.ensemble` | [gradient_boosting.md](docs/derivations/gradient_boosting.md) | Functional gradient descent on the log loss; regression trees fit to the pseudo-residuals with Newton-refined leaves; binary + multinomial deviance; `learning_rate`, `subsample`, `staged_predict` |
 
 ## License
 
