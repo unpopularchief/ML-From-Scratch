@@ -38,7 +38,7 @@ No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 - [x] AdaBoost (`AdaBoostClassifier`; SAMME; reweight-and-refit stumps; `staged_predict`)
 - [x] DecisionTreeRegressor (CART; variance / squared-error impurity; mean-value leaves) — shared recursion with the classifier; prerequisite for GradientBoosting
 - [x] GradientBoosting (`GradientBoostingClassifier`; functional gradient descent on the log loss; Newton-refined tree leaves; `subsample`)
-- [ ] KMeans
+- [x] KMeans (Lloyd's algorithm; k-means++ / random / explicit init; `n_init` restarts; empty-cluster relocation)
 - [ ] DBSCAN
 - [ ] GaussianMixture (EM)
 - [ ] PCA

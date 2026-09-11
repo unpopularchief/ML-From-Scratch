@@ -4,6 +4,7 @@ The public API is curated here as each algorithm lands (see ROADMAP.md for
 progress); nothing is exported from this file until it exists.
 """
 
+from scratchgrad.cluster import KMeans
 from scratchgrad.ensemble import (
     AdaBoostClassifier,
     GradientBoostingClassifier,
@@ -22,6 +23,7 @@ __all__ = [
     "DecisionTreeRegressor",
     "GaussianNB",
     "GradientBoostingClassifier",
+    "KMeans",
     "KNeighborsClassifier",
     "Lasso",
     "LinearRegression",
