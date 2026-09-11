@@ -6,6 +6,32 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.cluster.KMeans` — the first unsupervised algorithm, and
+  the first entry in the new `cluster/` package. Lloyd's algorithm:
+  alternates a nearest-centroid assignment step with a per-cluster-mean
+  update step, each the exact argmin of its subproblem holding the other
+  fixed, so the within-cluster sum of squares (`inertia_`) is
+  non-increasing every iteration and the run terminates at a local
+  optimum. `init` is `"k-means++"` (D(x)²-weighted seeding, the default),
+  `"random"` (uniform draw of distinct points), or an explicit
+  `(n_clusters, n_features)` array (deterministic, forces `n_init=1`).
+  `n_init` independent restarts keep the lowest-inertia run. An empty
+  cluster (zero points assigned) has its centroid relocated to whichever
+  point is farthest from its own cluster's centroid, excluded from that
+  cluster's mean — matches `sklearn.cluster.KMeans`'s relocation rule
+  exactly. `tol` is scaled by the data's mean per-feature variance.
+  `predict`, `fit_predict`, `transform` (distance to every centroid),
+  `fit_transform`, `score` (`-inertia_`, sklearn's convention). Euclidean
+  distance only — no `metric` parameter, since the mean-minimises-SSE
+  argument in the update step is specific to squared L2. With an explicit
+  `init` array there is no RNG anywhere in Lloyd's algorithm, so this
+  matches `sklearn.cluster.KMeans(algorithm="lloyd")` **exactly**
+  (`cluster_centers_`, `labels_`, `inertia_`, `n_iter_`, including the
+  empty-cluster relocation path) — the KMeans analogue of the
+  tree's `max_features=None` deterministic-parity path.
+  `"k-means++"`/`"random"` draw from our own `Generator`, so those are
+  tolerance-only (comparable inertia). Derivation:
+  `docs/derivations/kmeans.md`; example: `examples/kmeans.py`.
 - `scratchgrad.ensemble.GradientBoostingClassifier` — gradient boosting
   for classification: functional gradient descent on the log loss. Each
   round fits a `DecisionTreeRegressor` to the pseudo-residual (the
