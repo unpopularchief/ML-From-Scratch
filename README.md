@@ -19,7 +19,7 @@ transforms, dataset generators, the gradient-checking test tool) and M1
 `DecisionTreeClassifier`) are complete and tagged `v0.1.0`. M2 adds
 ensembles and unsupervised methods; `RandomForestClassifier`,
 `AdaBoostClassifier`, `DecisionTreeRegressor`, `GradientBoostingClassifier`,
-and `KMeans` have landed.
+`KMeans`, and `DBSCAN` have landed.
 See the table below, [`ROADMAP.md`](ROADMAP.md) for what's planned and in
 what order, and [`plan.md`](plan.md) for the full project plan
 (architecture, testing strategy, conventions, and the mistakes it's
@@ -80,6 +80,7 @@ what's planned next.
 | AdaBoostClassifier | `scratchgrad.ensemble` | [adaboost.md](docs/derivations/adaboost.md) | SAMME; stagewise fit of the multi-class exponential loss; reweight-and-refit stumps; `alpha`-weighted vote; `staged_predict` |
 | GradientBoostingClassifier | `scratchgrad.ensemble` | [gradient_boosting.md](docs/derivations/gradient_boosting.md) | Functional gradient descent on the log loss; regression trees fit to the pseudo-residuals with Newton-refined leaves; binary + multinomial deviance; `learning_rate`, `subsample`, `staged_predict` |
 | KMeans | `scratchgrad.cluster` | [kmeans.md](docs/derivations/kmeans.md) | Lloyd's algorithm; alternating nearest-centroid assignment and per-cluster mean update, each an exact argmin of the within-cluster SSE; k-means++ / random / explicit `init`; `n_init` restarts; empty-cluster relocation |
+| DBSCAN | `scratchgrad.cluster` | [dbscan.md](docs/derivations/dbscan.md) | Density-based clustering via a reachability relation, not an objective; core/border/noise points; single-pass depth-first expansion; no `n_clusters`; `eps` / `min_samples`; exact scikit-learn parity (no RNG on either side) |
 
 ## License
 

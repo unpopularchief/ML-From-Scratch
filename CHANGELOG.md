@@ -6,6 +6,29 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.cluster.DBSCAN` — density-based clustering. Unlike every
+  prior algorithm here, there is no objective being minimised: a cluster
+  is *defined* via density-reachability on the `eps`-neighbor graph
+  (Ester, Kriegel, Sander, Xu, 1996) — a point is a **core point** if it
+  has at least `min_samples` neighbors within `eps` (counting itself); a
+  cluster is the full set of points reachable from one core point through
+  a chain of core points; points reached by no expansion are **noise**
+  (`labels_ == -1`). No `n_clusters` to choose. A border point touching
+  two different clusters' core points has no unique answer under the
+  definition itself — resolved by matching `sklearn.cluster.DBSCAN`'s own
+  depth-first, stack-based traversal order exactly, rather than inventing
+  a new tie-break. `metric ∈ {"euclidean", "manhattan"}`. **No RNG
+  anywhere** in the algorithm (no `init`, no bootstrap), so this achieves
+  **exact** `labels_`/`core_sample_indices_` parity with
+  `sklearn.cluster.DBSCAN(algorithm="brute")` on every input tested, not
+  just a deterministic special case — a stronger parity result than any
+  prior algorithm gets by default. No `predict` — DBSCAN's clusters are a
+  property of the training set's own realized neighbor graph, with no
+  principled out-of-sample rule (matches scikit-learn's own `DBSCAN`,
+  which has no `predict` either). Brute-force `(n, n)` distance matrix, no
+  `algorithm` acceleration parameter, mirroring `KMeans`/
+  `KNeighborsClassifier`. Derivation: `docs/derivations/dbscan.md`;
+  example: `examples/dbscan.py`.
 - `scratchgrad.cluster.KMeans` — the first unsupervised algorithm, and
   the first entry in the new `cluster/` package. Lloyd's algorithm:
   alternates a nearest-centroid assignment step with a per-cluster-mean

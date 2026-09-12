@@ -39,7 +39,7 @@ No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 - [x] DecisionTreeRegressor (CART; variance / squared-error impurity; mean-value leaves) — shared recursion with the classifier; prerequisite for GradientBoosting
 - [x] GradientBoosting (`GradientBoostingClassifier`; functional gradient descent on the log loss; Newton-refined tree leaves; `subsample`)
 - [x] KMeans (Lloyd's algorithm; k-means++ / random / explicit init; `n_init` restarts; empty-cluster relocation)
-- [ ] DBSCAN
+- [x] DBSCAN (density-reachability, not an objective; core/border/noise; single-pass depth-first expansion; exact scikit-learn parity)
 - [ ] GaussianMixture (EM)
 - [ ] PCA
 - [ ] LinearSVM (kernel SVM/SMO optional)
