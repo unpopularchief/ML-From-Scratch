@@ -5,6 +5,7 @@ progress); nothing is exported from this file until it exists.
 """
 
 from scratchgrad.cluster import DBSCAN, GaussianMixture, KMeans
+from scratchgrad.decomposition import PCA
 from scratchgrad.ensemble import (
     AdaBoostClassifier,
     GradientBoostingClassifier,
@@ -30,6 +31,7 @@ __all__ = [
     "Lasso",
     "LinearRegression",
     "LogisticRegression",
+    "PCA",
     "RandomForestClassifier",
     "Ridge",
 ]

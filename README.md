@@ -19,7 +19,7 @@ transforms, dataset generators, the gradient-checking test tool) and M1
 `DecisionTreeClassifier`) are complete and tagged `v0.1.0`. M2 adds
 ensembles and unsupervised methods; `RandomForestClassifier`,
 `AdaBoostClassifier`, `DecisionTreeRegressor`, `GradientBoostingClassifier`,
-`KMeans`, `DBSCAN`, and `GaussianMixture` have landed.
+`KMeans`, `DBSCAN`, `GaussianMixture`, and `PCA` have landed.
 See the table below, [`ROADMAP.md`](ROADMAP.md) for what's planned and in
 what order, and [`plan.md`](plan.md) for the full project plan
 (architecture, testing strategy, conventions, and the mistakes it's
@@ -82,6 +82,7 @@ what's planned next.
 | KMeans | `scratchgrad.cluster` | [kmeans.md](docs/derivations/kmeans.md) | Lloyd's algorithm; alternating nearest-centroid assignment and per-cluster mean update, each an exact argmin of the within-cluster SSE; k-means++ / random / explicit `init`; `n_init` restarts; empty-cluster relocation |
 | DBSCAN | `scratchgrad.cluster` | [dbscan.md](docs/derivations/dbscan.md) | Density-based clustering via a reachability relation, not an objective; core/border/noise points; single-pass depth-first expansion; no `n_clusters`; `eps` / `min_samples`; exact scikit-learn parity (no RNG on either side) |
 | GaussianMixture | `scratchgrad.cluster` | [gaussian_mixture.md](docs/derivations/gaussian_mixture.md) | Expectation-Maximization on a Gaussian mixture log-likelihood; soft-assignment generalisation of KMeans; all four `covariance_type`s (full/tied/diag/spherical); `init_params` kmeans/random; `n_init` restarts; `predict_proba`, `score`/`score_samples`, `sample`, `bic`/`aic` |
+| PCA | `scratchgrad.decomposition` | [pca.md](docs/derivations/pca.md) | Variance-maximising eigenproblem, solved via SVD of the centered data (not `eigh(cov)`, for numerical stability); deterministic sign-fixed `components_`; `explained_variance_ratio_`; from-scratch power-iteration-with-deflation cross-check; exact scikit-learn parity (no RNG on either side) |
 
 ## License
 

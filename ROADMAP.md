@@ -41,7 +41,7 @@ No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 - [x] KMeans (Lloyd's algorithm; k-means++ / random / explicit init; `n_init` restarts; empty-cluster relocation)
 - [x] DBSCAN (density-reachability, not an objective; core/border/noise; single-pass depth-first expansion; exact scikit-learn parity)
 - [x] GaussianMixture (EM)
-- [ ] PCA
+- [x] PCA (variance-maximisation eigenproblem, computed via SVD; power-iteration from-scratch cross-check)
 - [ ] LinearSVM (kernel SVM/SMO optional)
 
 ## M3 — Optimizers + MLP, manual backward (`v0.3.0`)
