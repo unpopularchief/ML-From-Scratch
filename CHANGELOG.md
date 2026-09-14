@@ -6,6 +6,35 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.decomposition.PCA` — principal component analysis. The
+  directions that maximise projected variance are shown (Lagrangian on
+  `w^T C w` s.t. `||w||=1`) to be exactly the eigenvectors of the
+  covariance matrix `C`, ordered by eigenvalue — and, via a Pythagorean
+  decomposition of each point, that same set of directions simultaneously
+  minimises squared reconstruction error, so "capture the most variance"
+  and "reconstruct best" are the same problem. Computed via the SVD of
+  the centered data (`X_c = U Σ V^T`) rather than an explicit
+  `eigh(cov(X))` — squaring the condition number by forming `X_c^T X_c`
+  is exactly the numerical-stability trap `eigh` would otherwise walk
+  into — reading `components_`/`explained_variance_` straight off `Σ, V`
+  instead. Eigenvector sign is fixed deterministically (largest-magnitude
+  entry positive per component), matching scikit-learn's convention, so
+  results are reproducible and comparable across runs. Per `plan.md` §6's
+  explicit callout for this algorithm, a from-scratch
+  `_power_iteration_pca` (deflation-based power iteration on the
+  covariance matrix — an independent algorithm, not another library
+  decomposition) is kept and tested to agree with the SVD path on both
+  `components_` and eigenvalues — that agreement is itself the lesson,
+  mirroring the `nn`/`autograd` duplication described in `plan.md` §1.
+  Deliberately minimal relative to scikit-learn's `PCA`: `n_components`
+  is `int | None` only (no float variance-ratio threshold, no `"mle"`),
+  no `whiten`, no `svd_solver` choice — each is a convenience layered on
+  the same eigenvalues, not new math, and can be added later if a
+  concrete need shows up. **Exact parity with `sklearn.decomposition.PCA`**
+  (deterministic on both sides — no RNG anywhere in a full SVD) on
+  `components_`, `explained_variance_`, `explained_variance_ratio_`,
+  `singular_values_`, and `transform`/`inverse_transform` output.
+
 - `scratchgrad.cluster.GaussianMixture` — a Gaussian mixture model fitted
   by Expectation-Maximization (Dempster, Laird, Rubin, 1977). The
   soft-assignment, shape-and-size-learning generalisation of `KMeans`:
