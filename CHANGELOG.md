@@ -6,6 +6,43 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.cluster.GaussianMixture` — a Gaussian mixture model fitted
+  by Expectation-Maximization (Dempster, Laird, Rubin, 1977). The
+  soft-assignment, shape-and-size-learning generalisation of `KMeans`:
+  where KMeans hard-assigns each point to its nearest centroid, EM
+  computes a posterior **responsibility** for every component
+  (`predict_proba`) and, in the KMeans-equivalent limit (shared, shrinking
+  spherical covariance), the two algorithms coincide exactly (see the
+  derivation §5). The observed-data log-likelihood is a log of a sum with
+  no closed-form maximizer; EM instead alternates an E-step (posterior
+  responsibilities via Bayes' rule) and an M-step (responsibility-weighted
+  MLE of every parameter), provably non-decreasing the log-likelihood
+  every iteration — never guaranteed to reach the global optimum, so
+  `n_init` restarts matter exactly as they do for KMeans. All four
+  `covariance_type`s (`"full"`, `"tied"`, `"diag"`, `"spherical"`), each
+  its own closed-form weighted-MLE derivation, not an approximation of
+  `"full"`. `init_params ∈ {"kmeans", "random"}` — `"kmeans"` (the
+  default) runs this project's own `KMeans` once and one-hot encodes its
+  labels, a genuine cross-module reuse. `reg_covar` guards against a
+  singular covariance the same way `GaussianNB`'s `var_smoothing` guards
+  a zero variance; a covariance that stays singular anyway raises a clear
+  `ValueError` naming the fix rather than a raw `LinAlgError`. Beyond
+  `fit`/`predict`: `score`/`score_samples` (the fitted log-likelihood),
+  `sample` (draws real synthetic points — the concrete payoff of being a
+  generative model, which KMeans's pure partition never was), and
+  `bic`/`aic` (standard likelihood-penalized model-selection criteria for
+  choosing `n_components`). **Exact parity with
+  `sklearn.mixture.GaussianMixture`** given an identical starting point
+  for all four `covariance_type`s (verified by seeding both sides'
+  E/M-step math from the same fixed `weights`/`means`/`covariances` and
+  comparing after a fixed number of iterations — this project's own
+  `init_params` has no RNG-free path the way KMeans's explicit `init`
+  array does); the default `init_params="kmeans"` path is tolerance-only
+  (`< 5%` relative log-likelihood/BIC gap), like every other
+  RNG-dependent estimator here. Derivation: `docs/derivations/gaussian_mixture.md`;
+  exports in both `__init__.py`s; README + ROADMAP updated;
+  `examples/gaussian_mixture.py`.
+
 - `scratchgrad.cluster.DBSCAN` — density-based clustering. Unlike every
   prior algorithm here, there is no objective being minimised: a cluster
   is *defined* via density-reachability on the `eps`-neighbor graph

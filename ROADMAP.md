@@ -40,7 +40,7 @@ No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 - [x] GradientBoosting (`GradientBoostingClassifier`; functional gradient descent on the log loss; Newton-refined tree leaves; `subsample`)
 - [x] KMeans (Lloyd's algorithm; k-means++ / random / explicit init; `n_init` restarts; empty-cluster relocation)
 - [x] DBSCAN (density-reachability, not an objective; core/border/noise; single-pass depth-first expansion; exact scikit-learn parity)
-- [ ] GaussianMixture (EM)
+- [x] GaussianMixture (EM)
 - [ ] PCA
 - [ ] LinearSVM (kernel SVM/SMO optional)
 
