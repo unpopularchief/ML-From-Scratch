@@ -14,6 +14,7 @@ from scratchgrad.ensemble import (
 from scratchgrad.linear import Lasso, LinearRegression, LogisticRegression, Ridge
 from scratchgrad.naive_bayes import GaussianNB
 from scratchgrad.neighbors import KNeighborsClassifier
+from scratchgrad.svm import LinearSVM
 from scratchgrad.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 __version__ = "0.0.1"
@@ -30,6 +31,7 @@ __all__ = [
     "KNeighborsClassifier",
     "Lasso",
     "LinearRegression",
+    "LinearSVM",
     "LogisticRegression",
     "PCA",
     "RandomForestClassifier",

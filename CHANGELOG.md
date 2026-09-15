@@ -6,6 +6,30 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.svm.LinearSVM` — soft-margin linear support vector
+  classifier, fitted by minimising the primal hinge-loss objective
+  directly (no kernel trick, no dual): `J(w,b) = ½‖w‖² + C·Σ max(0, 1 −
+  yᵢ(w·xᵢ+b))`, matching `sklearn.svm.LinearSVC(loss="hinge")`'s
+  documented primal exactly so `C` needs no rescaling. The hinge term is
+  non-differentiable at `yᵢzᵢ = 1`; a consistent subgradient is picked
+  there (the flat side of the kink, mirroring `Lasso`'s L1 treatment) and
+  minimised by the subgradient method with a **diminishing step size**
+  `η_t = lr/√t` and **best-iterate ("pocket") tracking** — both needed
+  because, unlike smooth gradient descent, a fixed step size on a
+  non-smooth objective need not converge and the objective is not
+  guaranteed to decrease at every individual step. New `svm/` package.
+  Binary only (multiclass deferred); no `predict_proba` (a hinge SVM has
+  no native probabilistic output without a separate Platt-scaling
+  calibrator, out of scope); no `random_state` — the algorithm has no
+  randomness anywhere (deterministic zero initialisation), so `fit` is
+  reproducible without one, like `DBSCAN`/`PCA`. **No exact scikit-learn
+  parity** — `LinearSVC` solves the dual via liblinear's coordinate
+  descent, a different algorithm from this primal subgradient method, so
+  reference tests compare held-out accuracy and decision-boundary sign
+  agreement within a tolerance, the same tier `RandomForest`/
+  `GradientBoosting` use. This completes M2 (`v0.2.0`) — kernel SVM/SMO
+  remains explicitly optional per `plan.md` and is not implemented.
+
 - `scratchgrad.decomposition.PCA` — principal component analysis. The
   directions that maximise projected variance are shown (Lagrangian on
   `w^T C w` s.t. `||w||=1`) to be exactly the eigenvectors of the

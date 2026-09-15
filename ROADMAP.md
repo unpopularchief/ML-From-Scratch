@@ -42,7 +42,7 @@ No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 - [x] DBSCAN (density-reachability, not an objective; core/border/noise; single-pass depth-first expansion; exact scikit-learn parity)
 - [x] GaussianMixture (EM)
 - [x] PCA (variance-maximisation eigenproblem, computed via SVD; power-iteration from-scratch cross-check)
-- [ ] LinearSVM (kernel SVM/SMO optional)
+- [x] LinearSVM (soft-margin primal; hinge loss; subgradient method) (kernel SVM/SMO optional, not implemented)
 
 ## M3 — Optimizers + MLP, manual backward (`v0.3.0`)
 
