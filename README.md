@@ -12,18 +12,19 @@ this is for.
 
 ## Status
 
-🚧 **M2 in progress.** M0 (validation utilities, metrics, preprocessing
+🚧 **M3 in progress.** M0 (validation utilities, metrics, preprocessing
 transforms, dataset generators, the gradient-checking test tool) and M1
 (the classical supervised algorithms — `LinearRegression`, `Ridge`,
 `Lasso`, `LogisticRegression`, `KNeighborsClassifier`, `GaussianNB`,
-`DecisionTreeClassifier`) are complete and tagged `v0.1.0`. M2 adds
-ensembles and unsupervised methods; `RandomForestClassifier`,
-`AdaBoostClassifier`, `DecisionTreeRegressor`, `GradientBoostingClassifier`,
-`KMeans`, `DBSCAN`, `GaussianMixture`, `PCA`, and `LinearSVM` have landed.
-See the table below, [`ROADMAP.md`](ROADMAP.md) for what's planned and in
-what order, and [`plan.md`](plan.md) for the full project plan
-(architecture, testing strategy, conventions, and the mistakes it's
-deliberately avoiding).
+`DecisionTreeClassifier`) are complete and tagged `v0.1.0`. M2 (ensembles
+and unsupervised methods — `RandomForestClassifier`, `AdaBoostClassifier`,
+`DecisionTreeRegressor`, `GradientBoostingClassifier`, `KMeans`, `DBSCAN`,
+`GaussianMixture`, `PCA`, `LinearSVM`) is complete, `v0.2.0` not yet
+tagged. M3 adds optimizers and a manually-backpropagated MLP; `SGD`,
+`Momentum`, `Nesterov`, `RMSprop`, and `Adam` have landed. See the table
+below, [`ROADMAP.md`](ROADMAP.md) for what's planned and in what order,
+and [`plan.md`](plan.md) for the full project plan (architecture, testing
+strategy, conventions, and the mistakes it's deliberately avoiding).
 
 ## Philosophy
 
@@ -84,6 +85,11 @@ what's planned next.
 | GaussianMixture | `scratchgrad.cluster` | [gaussian_mixture.md](docs/derivations/gaussian_mixture.md) | Expectation-Maximization on a Gaussian mixture log-likelihood; soft-assignment generalisation of KMeans; all four `covariance_type`s (full/tied/diag/spherical); `init_params` kmeans/random; `n_init` restarts; `predict_proba`, `score`/`score_samples`, `sample`, `bic`/`aic` |
 | PCA | `scratchgrad.decomposition` | [pca.md](docs/derivations/pca.md) | Variance-maximising eigenproblem, solved via SVD of the centered data (not `eigh(cov)`, for numerical stability); deterministic sign-fixed `components_`; `explained_variance_ratio_`; from-scratch power-iteration-with-deflation cross-check; exact scikit-learn parity (no RNG on either side) |
 | LinearSVM | `scratchgrad.svm` | [linear_svm.md](docs/derivations/linear_svm.md) | Soft-margin primal; hinge loss; subgradient method with a diminishing `lr/sqrt(t)` step size and best-iterate tracking (no fixed step size / smooth-gradient guarantee applies to a non-differentiable objective); no `random_state` needed — fully deterministic |
+| SGD | `scratchgrad.optim` | [optim.md](docs/derivations/optim.md) | Plain gradient descent, `theta -= lr * grad`; the base case every other optimizer here reduces to at `momentum=0` |
+| Momentum | `scratchgrad.optim` | [optim.md](docs/derivations/optim.md) | Classical "heavy ball" momentum (Polyak, 1964); a running velocity buffer accumulates speed along consistent gradient directions and damps oscillation across inconsistent ones |
+| Nesterov | `scratchgrad.optim` | [optim.md](docs/derivations/optim.md) | Nesterov accelerated gradient, reformulated (Sutskever et al., 2013) to need only the gradient at the current point rather than a lookahead evaluation, tested against the literal lookahead formula for correctness |
+| RMSprop | `scratchgrad.optim` | [optim.md](docs/derivations/optim.md) | Per-coordinate learning rate scaled by a running average of squared gradients (Hinton, 2012); robust to badly-scaled/ill-conditioned objectives without per-direction tuning |
+| Adam | `scratchgrad.optim` | [optim.md](docs/derivations/optim.md) | Momentum + RMSprop combined, with bias-corrected first/second moment estimates (Kingma & Ba, 2015); exact PyTorch parity confirmed (new `torch` reference dependency) |
 
 ## License
 

@@ -6,6 +6,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.optim` — first-order optimizers, the first M3 unit: `SGD`
+  (plain `theta -= lr*grad`), `Momentum` (Polyak 1964 heavy-ball, a
+  running velocity buffer), `Nesterov` (accelerated gradient, reformulated
+  per Sutskever et al. 2013 to need only the gradient at the current point
+  rather than a lookahead evaluation — the interface every optimizer here
+  shares, `step(params: list[ndarray], grads: list[ndarray])` mutating in
+  place, has no mechanism to evaluate a shifted point), `RMSprop` (Hinton
+  2012, per-coordinate step scaled by a running average of squared
+  gradients), and `Adam` (Kingma & Ba 2015, bias-corrected Momentum +
+  RMSprop). All five operate on generic `list[ndarray]` parameters/
+  gradients rather than one flat vector, so a future layer's differently-
+  shaped `W`/`b` need no flattening; no shared `BaseOptimizer` class (only
+  three lines of lazy state-buffer allocation are actually common across
+  four of the five — not enough to justify one, `plan.md` §8 mistake 2).
+  `torch` added to the `reference` extra (scikit-learn parity tests since
+  M1; PyTorch joins at M3, per `plan.md` §7) — `tests/reference/
+  test_optim.py` confirms **exact** parameter-trajectory parity against
+  `torch.optim.SGD`/`RMSprop`/`Adam` (these are the same published update
+  formulas, not a different algorithm converging to the same outcome,
+  unlike every prior reference-test tier). New `optim/` package.
+
 - `scratchgrad.svm.LinearSVM` — soft-margin linear support vector
   classifier, fitted by minimising the primal hinge-loss objective
   directly (no kernel trick, no dual): `J(w,b) = ½‖w‖² + C·Σ max(0, 1 −

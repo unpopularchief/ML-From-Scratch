@@ -26,8 +26,8 @@ dependencies = ["numpy>=1.24"]
 
 [project.optional-dependencies]
 dev = ["pytest>=7", "pytest-cov", "ruff", "pre-commit"]
-# scikit-learn parity tests only, added at M1. PyTorch joins this extra at M3.
-reference = ["scikit-learn"]
+# scikit-learn parity tests since M1; PyTorch joins at M3 (optim/ onward).
+reference = ["scikit-learn", "torch"]
 # plotting in examples/ only, never imported by the library itself.
 examples = ["matplotlib"]
 
