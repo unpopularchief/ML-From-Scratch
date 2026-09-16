@@ -46,7 +46,7 @@ No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 
 ## M3 — Optimizers + MLP, manual backward (`v0.3.0`)
 
-- [ ] `optim`: SGD, momentum, Nesterov, RMSprop, Adam
+- [x] `optim`: SGD, momentum, Nesterov, RMSprop, Adam
 - [ ] `nn.Module`, `Linear`, activations, losses, init schemes
 - [ ] Dropout, BatchNorm
 - [ ] Full gradient-check coverage
