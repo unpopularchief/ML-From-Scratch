@@ -49,6 +49,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   formulas, not a different algorithm converging to the same outcome,
   unlike every prior reference-test tier). New `optim/` package.
 
+## [0.2.0] — 2026-09-17
+
+### Added
+
 - `scratchgrad.svm.LinearSVM` — soft-margin linear support vector
   classifier, fitted by minimising the primal hinge-loss objective
   directly (no kernel trick, no dual): `J(w,b) = ½‖w‖² + C·Σ max(0, 1 −
