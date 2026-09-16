@@ -21,7 +21,9 @@ and unsupervised methods — `RandomForestClassifier`, `AdaBoostClassifier`,
 `DecisionTreeRegressor`, `GradientBoostingClassifier`, `KMeans`, `DBSCAN`,
 `GaussianMixture`, `PCA`, `LinearSVM`) is complete, `v0.2.0` not yet
 tagged. M3 adds optimizers and a manually-backpropagated MLP; `SGD`,
-`Momentum`, `Nesterov`, `RMSprop`, and `Adam` have landed. See the table
+`Momentum`, `Nesterov`, `RMSprop`, `Adam`, and `nn`'s `Linear`/`ReLU`/
+`Sigmoid`/`Tanh`/`Softmax`/`MSELoss`/`BCEWithLogitsLoss`/
+`CrossEntropyLoss` have landed. See the table
 below, [`ROADMAP.md`](ROADMAP.md) for what's planned and in what order,
 and [`plan.md`](plan.md) for the full project plan (architecture, testing
 strategy, conventions, and the mistakes it's deliberately avoiding).
@@ -90,6 +92,14 @@ what's planned next.
 | Nesterov | `scratchgrad.optim` | [optim.md](docs/derivations/optim.md) | Nesterov accelerated gradient, reformulated (Sutskever et al., 2013) to need only the gradient at the current point rather than a lookahead evaluation, tested against the literal lookahead formula for correctness |
 | RMSprop | `scratchgrad.optim` | [optim.md](docs/derivations/optim.md) | Per-coordinate learning rate scaled by a running average of squared gradients (Hinton, 2012); robust to badly-scaled/ill-conditioned objectives without per-direction tuning |
 | Adam | `scratchgrad.optim` | [optim.md](docs/derivations/optim.md) | Momentum + RMSprop combined, with bias-corrected first/second moment estimates (Kingma & Ba, 2015); exact PyTorch parity confirmed (new `torch` reference dependency) |
+| Linear | `scratchgrad.nn` | [nn.md](docs/derivations/nn.md) | Fully-connected layer, `Y = XW + b`; hand-derived `dW`/`db`/`dX` via the matmul chain rule; `he`/`xavier`/`zeros` weight init; exact PyTorch parity |
+| ReLU | `scratchgrad.nn` | [nn.md](docs/derivations/nn.md) | `max(0, x)`, subgradient 0 at the kink (matches PyTorch); exact PyTorch parity |
+| Sigmoid | `scratchgrad.nn` | [nn.md](docs/derivations/nn.md) | Logistic sigmoid activation, backward from the cached output `sigma(x)(1-sigma(x))`; exact PyTorch parity |
+| Tanh | `scratchgrad.nn` | [nn.md](docs/derivations/nn.md) | `tanh(x)` activation, backward `1-tanh(x)^2` from the cached output; exact PyTorch parity |
+| Softmax | `scratchgrad.nn` | [nn.md](docs/derivations/nn.md) | Softmax activation with the full per-row Jacobian-vector-product backward (`diag(y) - y y^T`), independently gradient-checkable rather than only used fused inside the loss; exact PyTorch parity |
+| MSELoss | `scratchgrad.nn` | [nn.md](docs/derivations/nn.md) | Mean squared error, mean over every entry (matches `nn.MSELoss()`'s default reduction); exact PyTorch parity |
+| BCEWithLogitsLoss | `scratchgrad.nn` | [nn.md](docs/derivations/nn.md) | Binary cross-entropy fused with the sigmoid link from raw logits (`softplus(z) - yz`, the same stability trick as `LogisticRegression`'s loss); exact PyTorch parity |
+| CrossEntropyLoss | `scratchgrad.nn` | [nn.md](docs/derivations/nn.md) | Multiclass cross-entropy fused with the softmax link from raw logits, computed via `logsumexp` for stability; exact PyTorch parity |
 
 ## License
 

@@ -6,6 +6,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.nn` — hand-derived neural network building blocks, the
+  second M3 unit: `Module` (the shared `forward`/`backward`/
+  `parameters()`/`grads()` interface -- `parameters()`/`grads()` return
+  same-order `list[ndarray]`s directly consumable by
+  `optim.step(params, grads)`), `Linear` (`Y = XW + b`, backward via the
+  matmul chain rule), activations `ReLU`/`Sigmoid`/`Tanh`/`Softmax` (each
+  with its own backward; `Softmax`'s is the full per-row
+  Jacobian-vector product `diag(y) - y y^T`, not just a forward-only
+  helper), losses `MSELoss`/`BCEWithLogitsLoss`/`CrossEntropyLoss` (the
+  latter two take raw logits, fused with the sigmoid/softmax link
+  internally for stability -- the same move as `LogisticRegression`'s
+  `softplus(z) - yz` loss), and init schemes `zeros`/`xavier_uniform`/
+  `he_normal`. No `Module` subclassing of `base.Estimator` (a layer has
+  neither `fit` nor `predict`) and no shared `training`/`eval` flag yet
+  (deferred to the `Dropout`/`BatchNorm` unit that actually needs it).
+  `tests/reference/test_nn.py` confirms **exact** parity against
+  `torch.nn.Linear`/activations/losses (same tier as `optim/`'s PyTorch
+  parity, not a tolerance-only outcome comparison). `examples/nn.py`
+  hand-wires `Linear -> ReLU -> Linear -> BCEWithLogitsLoss` and trains
+  it with `optim.Adam` on `make_moons` (74.7% -> 99.3% accuracy) -- `nn`
+  and `optim` working together end-to-end. New `nn/` package.
+
 - `scratchgrad.optim` — first-order optimizers, the first M3 unit: `SGD`
   (plain `theta -= lr*grad`), `Momentum` (Polyak 1964 heavy-ball, a
   running velocity buffer), `Nesterov` (accelerated gradient, reformulated

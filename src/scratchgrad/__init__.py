@@ -14,6 +14,16 @@ from scratchgrad.ensemble import (
 from scratchgrad.linear import Lasso, LinearRegression, LogisticRegression, Ridge
 from scratchgrad.naive_bayes import GaussianNB
 from scratchgrad.neighbors import KNeighborsClassifier
+from scratchgrad.nn import (
+    BCEWithLogitsLoss,
+    CrossEntropyLoss,
+    Linear,
+    MSELoss,
+    ReLU,
+    Sigmoid,
+    Softmax,
+    Tanh,
+)
 from scratchgrad.optim import SGD, Adam, Momentum, Nesterov, RMSprop
 from scratchgrad.svm import LinearSVM
 from scratchgrad.tree import DecisionTreeClassifier, DecisionTreeRegressor
@@ -23,6 +33,8 @@ __version__ = "0.0.1"
 __all__ = [
     "AdaBoostClassifier",
     "Adam",
+    "BCEWithLogitsLoss",
+    "CrossEntropyLoss",
     "DBSCAN",
     "DecisionTreeClassifier",
     "DecisionTreeRegressor",
@@ -32,14 +44,20 @@ __all__ = [
     "KMeans",
     "KNeighborsClassifier",
     "Lasso",
+    "Linear",
     "LinearRegression",
     "LinearSVM",
     "LogisticRegression",
+    "MSELoss",
     "Momentum",
     "Nesterov",
     "PCA",
     "RMSprop",
     "RandomForestClassifier",
+    "ReLU",
     "Ridge",
     "SGD",
+    "Sigmoid",
+    "Softmax",
+    "Tanh",
 ]
