@@ -12,19 +12,21 @@ this is for.
 
 ## Status
 
-🚧 **M3 in progress.** M0 (validation utilities, metrics, preprocessing
-transforms, dataset generators, the gradient-checking test tool) and M1
-(the classical supervised algorithms — `LinearRegression`, `Ridge`,
-`Lasso`, `LogisticRegression`, `KNeighborsClassifier`, `GaussianNB`,
-`DecisionTreeClassifier`) are complete and tagged `v0.1.0`. M2 (ensembles
-and unsupervised methods — `RandomForestClassifier`, `AdaBoostClassifier`,
-`DecisionTreeRegressor`, `GradientBoostingClassifier`, `KMeans`, `DBSCAN`,
-`GaussianMixture`, `PCA`, `LinearSVM`) is complete and tagged `v0.2.0`. M3
-adds optimizers and a manually-backpropagated MLP; `SGD`, `Momentum`,
-`Nesterov`, `RMSprop`, `Adam`, `nn`'s `Linear`/`ReLU`/`Sigmoid`/`Tanh`/
-`Softmax`/`MSELoss`/`BCEWithLogitsLoss`/`CrossEntropyLoss`, and `Dropout`/
-`BatchNorm1d` (plus `Module`'s `training`/`eval` flag) have landed. See the
-table below, [`ROADMAP.md`](ROADMAP.md) for what's planned and in what
+🚧 **M3 complete, `v0.3.0` not yet tagged.** M0 (validation utilities,
+metrics, preprocessing transforms, dataset generators, the
+gradient-checking test tool) and M1 (the classical supervised algorithms —
+`LinearRegression`, `Ridge`, `Lasso`, `LogisticRegression`,
+`KNeighborsClassifier`, `GaussianNB`, `DecisionTreeClassifier`) are complete
+and tagged `v0.1.0`. M2 (ensembles and unsupervised methods —
+`RandomForestClassifier`, `AdaBoostClassifier`, `DecisionTreeRegressor`,
+`GradientBoostingClassifier`, `KMeans`, `DBSCAN`, `GaussianMixture`, `PCA`,
+`LinearSVM`) is complete and tagged `v0.2.0`. M3 (optimizers and a
+manually-backpropagated MLP — `SGD`, `Momentum`, `Nesterov`, `RMSprop`,
+`Adam`, `nn`'s `Linear`/`ReLU`/`Sigmoid`/`Tanh`/`Softmax`/`MSELoss`/
+`BCEWithLogitsLoss`/`CrossEntropyLoss`, `Dropout`/`BatchNorm1d`,
+`Module`'s `training`/`eval` flag, a minibatch `Trainer`, and a real
+MNIST example) is complete. See the table below,
+[`ROADMAP.md`](ROADMAP.md) for what's planned and in what
 order, and [`plan.md`](plan.md) for the full project plan (architecture,
 testing strategy, conventions, and the mistakes it's deliberately
 avoiding).

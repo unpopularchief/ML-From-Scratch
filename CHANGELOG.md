@@ -6,6 +6,33 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.nn.Trainer`, `scratchgrad.datasets.load_mnist`, and
+  `examples/mnist.py` — the fourth and final M3 unit, closing M3.
+  `Trainer(layers, loss_fn, optimizer).fit(X, y, epochs, batch_size,
+  X_val=None, y_val=None, metric=None, shuffle=True, random_state=None,
+  verbose=False)` is a minimal minibatch fit loop (`plan.md`'s
+  `nn/trainer.py`) over the same flat `list[Module]` `examples/nn.py`
+  already hand-chains `forward`/`backward` over -- no new differentiable
+  math, just batching/epochs/history on top of layers, losses, and
+  optimizers that already exist. It switches every layer to `.train()`/
+  `.eval()` at the right points: `train_loss`/`train_metric` come from
+  the actual training-mode minibatch passes (no extra forward pass, so a
+  metric never triggers a second `Dropout` draw or a second
+  `BatchNorm1d` running-stats update on the same batch), while
+  `val_loss`/`val_metric` come from a genuine eval-mode pass.
+  `load_mnist(data_dir=".cache/mnist", download=True)` downloads the four
+  canonical gzipped IDX files from a public mirror into a gitignored
+  cache directory on first use and parses the IDX format by hand
+  (`struct`-unpacked magic number + dimension header, then raw bytes) --
+  no dataset library dependency. `examples/mnist.py` trains a
+  `784 -> 256 -> 128 -> 10` MLP (`Linear`/`BatchNorm1d`/`ReLU`/`Dropout`
+  per hidden layer, `CrossEntropyLoss`, `optim.Adam`) via `Trainer.fit`,
+  reaching ~98.3% test accuracy in 15 epochs -- the M3 capstone, every
+  piece this milestone built working together on real data. MNIST
+  download/parse itself is untested by the automated suite (no network
+  access in tests); only the IDX byte-parsing functions and the
+  `download=False` guard are unit-tested.
+
 - `scratchgrad.nn.Dropout`/`BatchNorm1d`, and `Module`'s `training`/`eval`
   flag — the third M3 unit. `Module.training` (class attribute, default
   `True`) plus `train()`/`eval()` methods, read only by these two new

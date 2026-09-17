@@ -11,6 +11,7 @@ from scratchgrad.nn.init import he_normal, xavier_uniform, zeros
 from scratchgrad.nn.layers import BatchNorm1d, Dropout, Linear
 from scratchgrad.nn.losses import BCEWithLogitsLoss, CrossEntropyLoss, MSELoss
 from scratchgrad.nn.module import Module
+from scratchgrad.nn.trainer import Trainer
 
 __all__ = [
     "BCEWithLogitsLoss",
@@ -24,6 +25,7 @@ __all__ = [
     "Sigmoid",
     "Softmax",
     "Tanh",
+    "Trainer",
     "he_normal",
     "xavier_uniform",
     "zeros",
