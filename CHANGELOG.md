@@ -6,6 +6,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.nn.Dropout`/`BatchNorm1d`, and `Module`'s `training`/`eval`
+  flag — the third M3 unit. `Module.training` (class attribute, default
+  `True`) plus `train()`/`eval()` methods, read only by these two new
+  layers -- `Linear`/activations/losses are unaffected. `Dropout(p,
+  random_state)`: inverted dropout (`bernoulli(1-p)/(1-p)` mask in
+  training, identity with no RNG draw in eval), so `E[y]=x` in training and
+  no eval-time rescale is needed (matches `torch.nn.Dropout`).
+  `BatchNorm1d(num_features, eps, momentum)`: per-feature normalization
+  over the batch in training (with a Bessel-corrected running mean/var
+  update, exactly matching `torch.nn.BatchNorm1d` even though the batch
+  itself is normalized with the biased variance) or over the running
+  stats in eval -- each mode has its own, algebraically distinct backward
+  formula (eval's has no cross-sample coupling since the running stats
+  aren't functions of the current batch), both independently
+  gradient-checked. `tests/reference/test_dropout_batchnorm.py` confirms
+  **exact** `BatchNorm1d` parity against `torch.nn.BatchNorm1d` in both
+  modes, and exact `Dropout` eval-mode parity (training mode is RNG-stream
+  dependent, checked statistically instead). `examples/nn.py` extended to
+  `Linear -> BatchNorm1d -> ReLU -> Dropout -> Linear ->
+  BCEWithLogitsLoss`, switching every stateful layer to `.eval()` before
+  each accuracy/loss checkpoint and back to `.train()` afterward.
+
 - `scratchgrad.nn` — hand-derived neural network building blocks, the
   second M3 unit: `Module` (the shared `forward`/`backward`/
   `parameters()`/`grads()` interface -- `parameters()`/`grads()` return

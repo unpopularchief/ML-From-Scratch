@@ -15,8 +15,10 @@ from scratchgrad.linear import Lasso, LinearRegression, LogisticRegression, Ridg
 from scratchgrad.naive_bayes import GaussianNB
 from scratchgrad.neighbors import KNeighborsClassifier
 from scratchgrad.nn import (
+    BatchNorm1d,
     BCEWithLogitsLoss,
     CrossEntropyLoss,
+    Dropout,
     Linear,
     MSELoss,
     ReLU,
@@ -34,10 +36,12 @@ __all__ = [
     "AdaBoostClassifier",
     "Adam",
     "BCEWithLogitsLoss",
+    "BatchNorm1d",
     "CrossEntropyLoss",
     "DBSCAN",
     "DecisionTreeClassifier",
     "DecisionTreeRegressor",
+    "Dropout",
     "GaussianMixture",
     "GaussianNB",
     "GradientBoostingClassifier",
