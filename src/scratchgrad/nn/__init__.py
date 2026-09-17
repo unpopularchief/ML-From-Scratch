@@ -8,13 +8,15 @@ component's derivation.
 
 from scratchgrad.nn.activations import ReLU, Sigmoid, Softmax, Tanh
 from scratchgrad.nn.init import he_normal, xavier_uniform, zeros
-from scratchgrad.nn.layers import Linear
+from scratchgrad.nn.layers import BatchNorm1d, Dropout, Linear
 from scratchgrad.nn.losses import BCEWithLogitsLoss, CrossEntropyLoss, MSELoss
 from scratchgrad.nn.module import Module
 
 __all__ = [
     "BCEWithLogitsLoss",
+    "BatchNorm1d",
     "CrossEntropyLoss",
+    "Dropout",
     "Linear",
     "MSELoss",
     "Module",

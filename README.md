@@ -19,14 +19,15 @@ transforms, dataset generators, the gradient-checking test tool) and M1
 `DecisionTreeClassifier`) are complete and tagged `v0.1.0`. M2 (ensembles
 and unsupervised methods — `RandomForestClassifier`, `AdaBoostClassifier`,
 `DecisionTreeRegressor`, `GradientBoostingClassifier`, `KMeans`, `DBSCAN`,
-`GaussianMixture`, `PCA`, `LinearSVM`) is complete, `v0.2.0` not yet
-tagged. M3 adds optimizers and a manually-backpropagated MLP; `SGD`,
-`Momentum`, `Nesterov`, `RMSprop`, `Adam`, and `nn`'s `Linear`/`ReLU`/
-`Sigmoid`/`Tanh`/`Softmax`/`MSELoss`/`BCEWithLogitsLoss`/
-`CrossEntropyLoss` have landed. See the table
-below, [`ROADMAP.md`](ROADMAP.md) for what's planned and in what order,
-and [`plan.md`](plan.md) for the full project plan (architecture, testing
-strategy, conventions, and the mistakes it's deliberately avoiding).
+`GaussianMixture`, `PCA`, `LinearSVM`) is complete and tagged `v0.2.0`. M3
+adds optimizers and a manually-backpropagated MLP; `SGD`, `Momentum`,
+`Nesterov`, `RMSprop`, `Adam`, `nn`'s `Linear`/`ReLU`/`Sigmoid`/`Tanh`/
+`Softmax`/`MSELoss`/`BCEWithLogitsLoss`/`CrossEntropyLoss`, and `Dropout`/
+`BatchNorm1d` (plus `Module`'s `training`/`eval` flag) have landed. See the
+table below, [`ROADMAP.md`](ROADMAP.md) for what's planned and in what
+order, and [`plan.md`](plan.md) for the full project plan (architecture,
+testing strategy, conventions, and the mistakes it's deliberately
+avoiding).
 
 ## Philosophy
 
@@ -100,6 +101,8 @@ what's planned next.
 | MSELoss | `scratchgrad.nn` | [nn.md](docs/derivations/nn.md) | Mean squared error, mean over every entry (matches `nn.MSELoss()`'s default reduction); exact PyTorch parity |
 | BCEWithLogitsLoss | `scratchgrad.nn` | [nn.md](docs/derivations/nn.md) | Binary cross-entropy fused with the sigmoid link from raw logits (`softplus(z) - yz`, the same stability trick as `LogisticRegression`'s loss); exact PyTorch parity |
 | CrossEntropyLoss | `scratchgrad.nn` | [nn.md](docs/derivations/nn.md) | Multiclass cross-entropy fused with the softmax link from raw logits, computed via `logsumexp` for stability; exact PyTorch parity |
+| Dropout | `scratchgrad.nn` | [dropout_batchnorm.md](docs/derivations/dropout_batchnorm.md) | Inverted dropout: `bernoulli(1-p)/(1-p)` mask in training, identity in eval; the `1/(1-p)` scale keeps `E[y]=x` so no eval-time rescale is needed |
+| BatchNorm1d | `scratchgrad.nn` | [dropout_batchnorm.md](docs/derivations/dropout_batchnorm.md) | Per-feature normalization over the batch (Ioffe & Szegedy, 2015); training uses batch statistics and updates a Bessel-corrected running mean/var, eval uses the running stats; distinct, hand-derived backward formulas for each mode; exact PyTorch parity |
 
 ## License
 
