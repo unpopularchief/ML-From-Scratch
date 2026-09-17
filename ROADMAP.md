@@ -49,9 +49,9 @@ No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 - [x] `optim`: SGD, momentum, Nesterov, RMSprop, Adam
 - [x] `nn.Module`, `Linear`, activations, losses, init schemes
 - [x] Dropout, BatchNorm
-- [ ] Full gradient-check coverage
-- [ ] MNIST example
-- [ ] PyTorch added to `[reference]`
+- [x] Full gradient-check coverage
+- [x] MNIST example
+- [x] PyTorch added to `[reference]`
 
 ## M4 — CNN & RNN, still manual backward (`v0.4.0`)
 
