@@ -6,6 +6,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.nn.RNNCell`/`RNN`/`LSTMCell`/`LSTM` — batch-first,
+  single-layer recurrent building blocks with manual full backpropagation
+  through time. The step-level cells expose the vanilla tanh recurrence and
+  the LSTM's `i,f,g,o` gate equations directly; the sequence layers return
+  every hidden state, retain final states, and expose initial-state gradients.
+  Optional terminal-state gradients compose with losses attached directly to
+  the final hidden/cell states. Input and recurrent matrices use independent
+  Xavier initialization, a single non-redundant bias, and parameter/gradient
+  lists consumable by the existing optimizers. Whole-sequence finite-
+  difference checks cover inputs, parameters, initial states, and final-state
+  loss edges; `tests/reference/test_recurrent.py` confirms exact PyTorch
+  forward/BPTT parity for both cells and both sequence layers. Derivation:
+  `docs/derivations/recurrent.md`.
+
 - `scratchgrad.nn.Conv2d`/`MaxPool2d`/`Flatten` — the first M4 unit.
   `Conv2d` performs NCHW cross-correlation by explicitly lowering receptive
   fields to an im2col matrix, multiplying by flattened filters, and restoring

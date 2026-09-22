@@ -56,7 +56,7 @@ No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 ## M4 — CNN & RNN, still manual backward (`v0.4.0`)
 
 - [x] Conv2d (im2col), MaxPool, Flatten
-- [ ] RNN cell, LSTM, BPTT
+- [x] RNN cell, LSTM, BPTT
 - [ ] MNIST CNN example, char-level RNN example
 
 ## M5 — Autograd engine (`v0.5.0`)
