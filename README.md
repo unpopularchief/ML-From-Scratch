@@ -12,7 +12,8 @@ this is for.
 
 ## Status
 
-🚧 **M3 complete, `v0.3.0` not yet tagged.** M0 (validation utilities,
+🚧 **M4 underway; M3 complete, `v0.3.0` not yet tagged.** M0 (validation
+utilities,
 metrics, preprocessing transforms, dataset generators, the
 gradient-checking test tool) and M1 (the classical supervised algorithms —
 `LinearRegression`, `Ridge`, `Lasso`, `LogisticRegression`,
@@ -25,7 +26,8 @@ manually-backpropagated MLP — `SGD`, `Momentum`, `Nesterov`, `RMSprop`,
 `Adam`, `nn`'s `Linear`/`ReLU`/`Sigmoid`/`Tanh`/`Softmax`/`MSELoss`/
 `BCEWithLogitsLoss`/`CrossEntropyLoss`, `Dropout`/`BatchNorm1d`,
 `Module`'s `training`/`eval` flag, a minibatch `Trainer`, and a real
-MNIST example) is complete. See the table below,
+MNIST example) is complete. M4's first unit adds manually backpropagated
+`Conv2d` (im2col), `MaxPool2d`, and `Flatten`. See the table below,
 [`ROADMAP.md`](ROADMAP.md) for what's planned and in what
 order, and [`plan.md`](plan.md) for the full project plan (architecture,
 testing strategy, conventions, and the mistakes it's deliberately
@@ -105,6 +107,9 @@ what's planned next.
 | CrossEntropyLoss | `scratchgrad.nn` | [nn.md](docs/derivations/nn.md) | Multiclass cross-entropy fused with the softmax link from raw logits, computed via `logsumexp` for stability; exact PyTorch parity |
 | Dropout | `scratchgrad.nn` | [dropout_batchnorm.md](docs/derivations/dropout_batchnorm.md) | Inverted dropout: `bernoulli(1-p)/(1-p)` mask in training, identity in eval; the `1/(1-p)` scale keeps `E[y]=x` so no eval-time rescale is needed |
 | BatchNorm1d | `scratchgrad.nn` | [dropout_batchnorm.md](docs/derivations/dropout_batchnorm.md) | Per-feature normalization over the batch (Ioffe & Szegedy, 2015); training uses batch statistics and updates a Bessel-corrected running mean/var, eval uses the running stats; distinct, hand-derived backward formulas for each mode; exact PyTorch parity |
+| Conv2d | `scratchgrad.nn` | [conv_pool.md](docs/derivations/conv_pool.md) | NCHW cross-correlation lowered by im2col to one matrix multiplication; col2im scatter-add backward for overlapping receptive fields; stride/padding; `he`/`xavier`/`zeros` initialization; exact PyTorch parity |
+| MaxPool2d | `scratchgrad.nn` | [conv_pool.md](docs/derivations/conv_pool.md) | Per-channel spatial maximum; backward routes each gradient to the cached first argmax and sums overlapping windows; negative-infinity padding; exact PyTorch parity |
+| Flatten | `scratchgrad.nn` | [conv_pool.md](docs/derivations/conv_pool.md) | Preserves the batch dimension and reshapes all remaining axes to one feature axis; backward restores the cached input shape; exact PyTorch parity |
 
 ## License
 

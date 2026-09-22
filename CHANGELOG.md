@@ -6,6 +6,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.nn.Conv2d`/`MaxPool2d`/`Flatten` — the first M4 unit.
+  `Conv2d` performs NCHW cross-correlation by explicitly lowering receptive
+  fields to an im2col matrix, multiplying by flattened filters, and restoring
+  NCHW output; its manual backward computes filter/bias gradients by matrix
+  multiplication and uses col2im scatter-add for overlapping input-gradient
+  contributions. Integer or rectangular-pair kernels, strides, and symmetric
+  padding are supported, with optional bias and `he`/`xavier`/`zeros`
+  initialization. `MaxPool2d` caches the first row-major argmax in each window
+  and scatters gradients back to those winners, summing overlaps; padding is
+  negative infinity so it cannot beat negative image values. `Flatten`
+  preserves the batch axis and restores the cached shape in backward. Every
+  backward pass is finite-difference checked, and
+  `tests/reference/test_conv_pool.py` confirms exact PyTorch forward/backward
+  parity. Derivation: `docs/derivations/conv_pool.md`.
+
 - `scratchgrad.nn.Trainer`, `scratchgrad.datasets.load_mnist`, and
   `examples/mnist.py` — the fourth and final M3 unit, closing M3.
   `Trainer(layers, loss_fn, optimizer).fit(X, y, epochs, batch_size,
