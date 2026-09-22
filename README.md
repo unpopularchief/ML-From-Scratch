@@ -110,6 +110,8 @@ what's planned next.
 | Conv2d | `scratchgrad.nn` | [conv_pool.md](docs/derivations/conv_pool.md) | NCHW cross-correlation lowered by im2col to one matrix multiplication; col2im scatter-add backward for overlapping receptive fields; stride/padding; `he`/`xavier`/`zeros` initialization; exact PyTorch parity |
 | MaxPool2d | `scratchgrad.nn` | [conv_pool.md](docs/derivations/conv_pool.md) | Per-channel spatial maximum; backward routes each gradient to the cached first argmax and sums overlapping windows; negative-infinity padding; exact PyTorch parity |
 | Flatten | `scratchgrad.nn` | [conv_pool.md](docs/derivations/conv_pool.md) | Preserves the batch dimension and reshapes all remaining axes to one feature axis; backward restores the cached input shape; exact PyTorch parity |
+| RNNCell / RNN | `scratchgrad.nn` | [recurrent.md](docs/derivations/recurrent.md) | Tanh recurrent cell plus batch-first sequence unrolling; full reverse-time BPTT sums shared-parameter gradients and exposes the initial-state gradient; exact PyTorch cell/sequence parity |
+| LSTMCell / LSTM | `scratchgrad.nn` | [recurrent.md](docs/derivations/recurrent.md) | Input/forget/candidate/output gates and additive cell state in `i,f,g,o` order; full BPTT carries both hidden- and cell-state gradients; exact PyTorch cell/sequence parity |
 
 ## License
 
