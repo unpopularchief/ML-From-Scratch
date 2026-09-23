@@ -57,7 +57,7 @@ No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 
 - [x] Conv2d (im2col), MaxPool, Flatten
 - [x] RNN cell, LSTM, BPTT
-- [ ] MNIST CNN example, char-level RNN example
+- [x] MNIST CNN example, char-level RNN example
 
 ## M5 — Autograd engine (`v0.5.0`)
 
