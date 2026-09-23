@@ -6,6 +6,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `examples/mnist_cnn.py` and `examples/char_rnn.py` complete M4 with two
+  runnable capstones. The CNN example reshapes MNIST pixels to NCHW and trains
+  `Conv2d -> ReLU -> MaxPool2d -> Conv2d -> ReLU -> MaxPool2d -> Flatten ->
+  Linear` through the existing `Trainer`. The char-level RNN example downloads
+  tiny Shakespeare into a gitignored cache, predicts the character after each
+  sampled context, and makes BPTT explicit: the classifier gradient is passed
+  as the RNN's additional final-hidden-state gradient while the sequence-output
+  gradient is zero. `scratchgrad.datasets.load_tiny_shakespeare` is the
+  corresponding runtime-cache loader; no dataset is committed to the repo.
+
 - `scratchgrad.nn.RNNCell`/`RNN`/`LSTMCell`/`LSTM` — batch-first,
   single-layer recurrent building blocks with manual full backpropagation
   through time. The step-level cells expose the vanilla tanh recurrence and

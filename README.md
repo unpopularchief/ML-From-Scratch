@@ -26,8 +26,9 @@ manually-backpropagated MLP — `SGD`, `Momentum`, `Nesterov`, `RMSprop`,
 `Adam`, `nn`'s `Linear`/`ReLU`/`Sigmoid`/`Tanh`/`Softmax`/`MSELoss`/
 `BCEWithLogitsLoss`/`CrossEntropyLoss`, `Dropout`/`BatchNorm1d`,
 `Module`'s `training`/`eval` flag, a minibatch `Trainer`, and a real
-MNIST example) is complete. M4's first unit adds manually backpropagated
-`Conv2d` (im2col), `MaxPool2d`, and `Flatten`. See the table below,
+MNIST example) is complete. M4 adds manually backpropagated `Conv2d`
+(im2col), `MaxPool2d`, `Flatten`, `RNN`/`LSTM` with full BPTT, and runnable
+MNIST-CNN and char-level-RNN examples. See the table below,
 [`ROADMAP.md`](ROADMAP.md) for what's planned and in what
 order, and [`plan.md`](plan.md) for the full project plan (architecture,
 testing strategy, conventions, and the mistakes it's deliberately
