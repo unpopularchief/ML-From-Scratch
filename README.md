@@ -31,7 +31,8 @@ MNIST example) is complete. M4 adds manually backpropagated `Conv2d`
 MNIST-CNN and char-level-RNN examples; M4 is complete. M5 (autograd) has
 begun with `scratchgrad.autograd.Tensor`, topological `backward()`, and the
 primitive ops with their VJPs, plus Tensor-based functional ops, layers
-and optimizers. See the table below,
+and optimizers; a proof test shows an autograd MLP reproduces the
+hand-derived `nn` MLP's gradients and training trajectory. See the table below,
 [`ROADMAP.md`](ROADMAP.md) for what's planned and in what
 order, and [`plan.md`](plan.md) for the full project plan (architecture,
 testing strategy, conventions, and the mistakes it's deliberately

@@ -6,6 +6,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- M5 proof test (`tests/autograd/test_mlp_proof.py`) — the same
+  `Linear -> ReLU -> Dropout -> Linear -> Tanh -> Linear -> CrossEntropy` MLP
+  built from the hand-derived `nn` layers and from `autograd` layers with no
+  backward code: loss, every parameter gradient and the input gradient agree
+  to `1e-10`, and 25 Adam steps on each side give the same loss at every step
+  and the same final weights. Completes M5.
+
 - `scratchgrad.autograd.functional`, `.layers` and `.optim` — the second M5
   unit. `log_softmax`/`softmax`/`cross_entropy`/`bce_with_logits`/`mse_loss`
   are stable forward compositions of Tensor ops; `Linear`, `Dropout` and
