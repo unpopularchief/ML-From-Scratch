@@ -63,7 +63,7 @@ No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 
 - [x] `Tensor`, topological `backward()`, ops + VJPs
 - [x] Tensor-based layers and optimizers
-- [ ] Proof test: M3's MLP reimplemented on autograd, gradients match the hand-derived ones
+- [x] Proof test: M3's MLP reimplemented on autograd, gradients match the hand-derived ones
 
 ## M6 — Attention (`v0.6.0`)
 
