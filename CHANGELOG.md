@@ -6,6 +6,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.autograd.functional`, `.layers` and `.optim` — the second M5
+  unit. `log_softmax`/`softmax`/`cross_entropy`/`bce_with_logits`/`mse_loss`
+  are stable forward compositions of Tensor ops; `Linear`, `Dropout` and
+  `Sequential` (with a minimal Tensor `Module`) define no backward at all;
+  `SGD`, `Adam` and `AdamW` update Tensor parameters from their `.grad`.
+  Gradients and parameter updates are tested equal to the hand-derived `nn`/
+  `optim` ones. Derivation: `docs/derivations/autograd_layers.md`.
+
 - `scratchgrad.autograd.Tensor` — the first M5 unit: a float64 ndarray that
   records the graph it was computed through, with an iterative topological
   `backward()` (leaf gradients accumulate across calls; `zero_grad()` and
