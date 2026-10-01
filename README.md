@@ -30,7 +30,8 @@ MNIST example) is complete. M4 adds manually backpropagated `Conv2d`
 (im2col), `MaxPool2d`, `Flatten`, `RNN`/`LSTM` with full BPTT, and runnable
 MNIST-CNN and char-level-RNN examples; M4 is complete. M5 (autograd) has
 begun with `scratchgrad.autograd.Tensor`, topological `backward()`, and the
-primitive ops with their VJPs. See the table below,
+primitive ops with their VJPs, plus Tensor-based functional ops, layers
+and optimizers. See the table below,
 [`ROADMAP.md`](ROADMAP.md) for what's planned and in what
 order, and [`plan.md`](plan.md) for the full project plan (architecture,
 testing strategy, conventions, and the mistakes it's deliberately
@@ -116,6 +117,7 @@ what's planned next.
 | RNNCell / RNN | `scratchgrad.nn` | [recurrent.md](docs/derivations/recurrent.md) | Tanh recurrent cell plus batch-first sequence unrolling; full reverse-time BPTT sums shared-parameter gradients and exposes the initial-state gradient; exact PyTorch cell/sequence parity |
 | LSTMCell / LSTM | `scratchgrad.nn` | [recurrent.md](docs/derivations/recurrent.md) | Input/forget/candidate/output gates and additive cell state in `i,f,g,o` order; full BPTT carries both hidden- and cell-state gradients; exact PyTorch cell/sequence parity |
 | Tensor | `scratchgrad.autograd` | [autograd.md](docs/derivations/autograd.md) | Reverse-mode autodiff: graph recording, iterative topological `backward()`, per-op vector-Jacobian products, broadcasting un-summation, fan-out accumulation |
+| Linear / Dropout / Sequential, losses, SGD / Adam / AdamW | `scratchgrad.autograd` | [autograd_layers.md](docs/derivations/autograd_layers.md) | Layers and stable losses (softmax, cross-entropy, BCE) as pure forward compositions of Tensor ops with no hand-written backward, matching `nn`'s hand-derived gradients; optimizers over Tensor parameters, AdamW with decoupled weight decay |
 
 ## License
 
