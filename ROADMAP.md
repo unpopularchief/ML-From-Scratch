@@ -61,7 +61,7 @@ No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 
 ## M5 — Autograd engine (`v0.5.0`)
 
-- [ ] `Tensor`, topological `backward()`, ops + VJPs
+- [x] `Tensor`, topological `backward()`, ops + VJPs
 - [ ] Tensor-based layers and optimizers
 - [ ] Proof test: M3's MLP reimplemented on autograd, gradients match the hand-derived ones
 

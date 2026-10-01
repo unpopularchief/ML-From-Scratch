@@ -6,6 +6,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.autograd.Tensor` — the first M5 unit: a float64 ndarray that
+  records the graph it was computed through, with an iterative topological
+  `backward()` (leaf gradients accumulate across calls; `zero_grad()` and
+  `detach()` provided). Operators and methods cover add/sub/mul/div/neg/pow,
+  2-D matmul, exp/log/tanh/sigmoid/relu, sum/mean, reshape/transpose; each op's
+  vector-Jacobian product lives in `autograd/ops.py` and is gradient-checked,
+  including numpy broadcasting. Derivation: `docs/derivations/autograd.md`.
+
 - `examples/mnist_cnn.py` and `examples/char_rnn.py` complete M4 with two
   runnable capstones. The CNN example reshapes MNIST pixels to NCHW and trains
   `Conv2d -> ReLU -> MaxPool2d -> Conv2d -> ReLU -> MaxPool2d -> Flatten ->

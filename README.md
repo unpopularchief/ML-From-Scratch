@@ -12,7 +12,7 @@ this is for.
 
 ## Status
 
-🚧 **M4 underway; M3 complete, `v0.3.0` not yet tagged.** M0 (validation
+🚧 **M5 underway; M3 and M4 complete, `v0.3.0`/`v0.4.0` not yet tagged.** M0 (validation
 utilities,
 metrics, preprocessing transforms, dataset generators, the
 gradient-checking test tool) and M1 (the classical supervised algorithms —
@@ -28,7 +28,9 @@ manually-backpropagated MLP — `SGD`, `Momentum`, `Nesterov`, `RMSprop`,
 `Module`'s `training`/`eval` flag, a minibatch `Trainer`, and a real
 MNIST example) is complete. M4 adds manually backpropagated `Conv2d`
 (im2col), `MaxPool2d`, `Flatten`, `RNN`/`LSTM` with full BPTT, and runnable
-MNIST-CNN and char-level-RNN examples. See the table below,
+MNIST-CNN and char-level-RNN examples; M4 is complete. M5 (autograd) has
+begun with `scratchgrad.autograd.Tensor`, topological `backward()`, and the
+primitive ops with their VJPs. See the table below,
 [`ROADMAP.md`](ROADMAP.md) for what's planned and in what
 order, and [`plan.md`](plan.md) for the full project plan (architecture,
 testing strategy, conventions, and the mistakes it's deliberately
@@ -113,6 +115,7 @@ what's planned next.
 | Flatten | `scratchgrad.nn` | [conv_pool.md](docs/derivations/conv_pool.md) | Preserves the batch dimension and reshapes all remaining axes to one feature axis; backward restores the cached input shape; exact PyTorch parity |
 | RNNCell / RNN | `scratchgrad.nn` | [recurrent.md](docs/derivations/recurrent.md) | Tanh recurrent cell plus batch-first sequence unrolling; full reverse-time BPTT sums shared-parameter gradients and exposes the initial-state gradient; exact PyTorch cell/sequence parity |
 | LSTMCell / LSTM | `scratchgrad.nn` | [recurrent.md](docs/derivations/recurrent.md) | Input/forget/candidate/output gates and additive cell state in `i,f,g,o` order; full BPTT carries both hidden- and cell-state gradients; exact PyTorch cell/sequence parity |
+| Tensor | `scratchgrad.autograd` | [autograd.md](docs/derivations/autograd.md) | Reverse-mode autodiff: graph recording, iterative topological `backward()`, per-op vector-Jacobian products, broadcasting un-summation, fan-out accumulation |
 
 ## License
 
