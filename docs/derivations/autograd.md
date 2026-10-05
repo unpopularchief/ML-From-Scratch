@@ -81,8 +81,9 @@ With $g = \bar y$:
 `matmul` is exactly `nn.Linear`'s backward ($\bar X = \bar Y W^\top$,
 $\bar W = X^\top \bar Y$); `sum`'s broadcast-back is `Linear`'s
 $\bar b = \bar Y$ summed over the batch, seen from the other side.
-`matmul` is restricted to 2-D operands (batched matmul is deferred until
-something needs it); `pow` takes a constant exponent only.
+`matmul` batches over leading axes (added for attention, see
+[attention.md](attention.md) §2) but needs at least 2 dims per operand; `pow`
+takes a constant exponent only.
 
 ### Broadcasting
 

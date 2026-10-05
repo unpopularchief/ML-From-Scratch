@@ -96,17 +96,24 @@ def pow(a: Tensor, exponent: float) -> Tensor:  # noqa: A001 - mirrors the ``**`
 
 
 def matmul(a: Any, b: Any) -> Tensor:
-    """2-D matrix product ``a @ b``."""
+    """Matrix product ``a @ b`` over the last two axes, batching leading ones.
+
+    Leading (batch) axes broadcast like ``np.matmul``; both operands need at
+    least 2 dims (no 1-D vector promotion).
+    """
     a, b = _as_tensor(a), _as_tensor(b)
-    if a.data.ndim != 2 or b.data.ndim != 2:
+    if a.data.ndim < 2 or b.data.ndim < 2:
         raise ValueError(
-            "matmul supports 2-D operands only, "
+            "matmul needs operands with at least 2 dims, "
             f"got {a.data.ndim}-D and {b.data.ndim}-D"
         )
     return Tensor._from_op(
         a.data @ b.data,
         (a, b),
-        lambda g: (g @ b.data.T, a.data.T @ g),
+        lambda g: (
+            _unbroadcast(g @ np.swapaxes(b.data, -1, -2), a.shape),
+            _unbroadcast(np.swapaxes(a.data, -1, -2) @ g, b.shape),
+        ),
     )
 
 

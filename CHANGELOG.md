@@ -6,6 +6,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `scratchgrad.attention` — the first M6 unit: `scaled_dot_product_attention(q, k, v, mask)`
+  returns `(output, weights)` as a pure composition of Tensor ops (no hand-written
+  backward), with boolean `causal_mask` and `padding_mask`. Masks are applied as an
+  additive `-1e9` constant, so fully blocked rows stay finite. `ops.matmul` now batches
+  over leading axes (broadcasting, with un-broadcast VJPs) instead of being 2-D only.
+  Gradients are tested against finite differences, the hand-derived softmax-Jacobian
+  formulas and `torch.nn.functional.scaled_dot_product_attention`.
+  Derivation: `docs/derivations/attention.md`.
+
 - M5 proof test (`tests/autograd/test_mlp_proof.py`) — the same
   `Linear -> ReLU -> Dropout -> Linear -> Tanh -> Linear -> CrossEntropy` MLP
   built from the hand-derived `nn` layers and from `autograd` layers with no
