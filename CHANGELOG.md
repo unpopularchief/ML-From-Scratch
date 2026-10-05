@@ -6,6 +6,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Character and minimal BPE tokenizers in `scratchgrad.transformer`.
+  `CharTokenizer` assigns sorted Unicode code-point IDs; `BPETokenizer` greedily
+  merges the most frequent adjacent pair with a deterministic tie-break and a
+  configurable merge limit. Both provide `fit`, `encode`, and `decode`.
+  Derivation: `docs/derivations/tokenizer.md`.
+
 - Pre-LN transformer block, encoder and decoder — the first M7 unit.
   `scratchgrad.transformer` adds `FeedForward`, `EncoderBlock`, `DecoderBlock`,
   `Encoder` and `Decoder`: residual `x + Drop(sublayer(LN(x)))` blocks, causal
