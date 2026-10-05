@@ -7,6 +7,9 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
+import numpy as np
+
+from scratchgrad.autograd.functional import layer_norm
 from scratchgrad.autograd.tensor import Tensor
 from scratchgrad.nn.init import he_normal, xavier_uniform, zeros
 from scratchgrad.nn.layers.dropout import _dropout_mask
@@ -100,6 +103,35 @@ class Linear(Module):
     def parameters(self) -> list[Tensor]:
         """``[W, b]``."""
         return [self.W, self.b]
+
+
+class LayerNorm(Module):
+    """Normalize over the last axis with learned scale ``gamma`` and shift ``beta``.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> layer = LayerNorm(4)
+    >>> layer(Tensor(np.arange(8.0).reshape(2, 4))).shape
+    (2, 4)
+
+    """
+
+    def __init__(self, num_features: int, eps: float = 1e-5) -> None:
+        """``gamma`` starts at one and ``beta`` at zero."""
+        if num_features <= 0:
+            raise ValueError(f"num_features must be positive, got {num_features}")
+        self.eps = eps
+        self.gamma = Tensor(np.ones(num_features), requires_grad=True)
+        self.beta = Tensor(np.zeros(num_features), requires_grad=True)
+
+    def forward(self, x: Tensor) -> Tensor:
+        """Apply :func:`scratchgrad.autograd.functional.layer_norm`."""
+        return layer_norm(x, self.gamma, self.beta, self.eps)
+
+    def parameters(self) -> list[Tensor]:
+        """``[gamma, beta]``."""
+        return [self.gamma, self.beta]
 
 
 class Dropout(Module):

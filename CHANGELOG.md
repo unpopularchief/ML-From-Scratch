@@ -6,6 +6,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Pre-LN transformer block, encoder and decoder — the first M7 unit.
+  `scratchgrad.transformer` adds `FeedForward`, `EncoderBlock`, `DecoderBlock`,
+  `Encoder` and `Decoder`: residual `x + Drop(sublayer(LN(x)))` blocks, causal
+  self-attention by default, optional cross-attention over an encoder `memory`
+  (`cross_attention=False` gives the decoder-only block with no cross parameters), and a
+  final `LayerNorm` on each stack. Stacks take already-embedded `(B, T, d_model)`
+  inputs. Autograd gains `functional.layer_norm`, `functional.gelu` (tanh form) and
+  `layers.LayerNorm`, all composed from existing ops with no hand-written backward.
+  Tested against the closed-form LayerNorm gradient, finite differences, mask
+  behaviour, and PyTorch's `nn.TransformerEncoderLayer` / `nn.TransformerDecoderLayer`
+  with `norm_first=True`. Derivation: `docs/derivations/transformer_block.md`.
+
 - Multi-head attention and positional encodings — the second M6 unit.
   `MultiHeadAttention(d_model, num_heads)` composes four `Linear` projections with
   the batched `scaled_dot_product_attention` (heads as a batch axis) and returns
