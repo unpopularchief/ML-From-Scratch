@@ -6,6 +6,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Tiny character GPT trained on tiny Shakespeare. `Embedding` and array-index
+  scatter-add VJPs let repeated token IDs share gradients; `TinyGPT` composes
+  token and learned position embeddings with the existing causal decoder and
+  an untied output head. `examples/tiny_gpt.py` trains, reports held-out loss,
+  samples text, and saves a local checkpoint. Derivation and measured run:
+  `docs/derivations/tiny_gpt.md`.
+
 - Character and minimal BPE tokenizers in `scratchgrad.transformer`.
   `CharTokenizer` assigns sorted Unicode code-point IDs; `BPETokenizer` greedily
   merges the most frequent adjacent pair with a deterministic tie-break and a

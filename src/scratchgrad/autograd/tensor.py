@@ -227,7 +227,7 @@ class Tensor:
         return ops.matmul(other, self)
 
     def __getitem__(self, index: Any) -> Tensor:
-        """Return ``self[index]`` for basic (int/slice) indexing."""
+        """Return ``self[index]`` with scatter-add gradients for repeated indices."""
         from scratchgrad.autograd import ops
 
         return ops.getitem(self, index)

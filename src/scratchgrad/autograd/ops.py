@@ -182,15 +182,11 @@ def reshape(a: Tensor, shape: tuple[int, ...]) -> Tensor:
 
 
 def getitem(a: Tensor, index: Any) -> Tensor:
-    """Index with ints and slices; the VJP scatters the gradient into zeros.
-
-    Advanced (array) indexing is not supported: it can repeat an element, and
-    the scatter below assigns rather than accumulates.
-    """
+    """Index with ints, slices, or arrays; scatter-add repeated gradients."""
 
     def vjp(g: FloatArray) -> tuple[FloatArray]:
         grad = np.zeros_like(a.data)
-        grad[index] = g
+        np.add.at(grad, index, g)
         return (grad,)
 
     return Tensor._from_op(np.array(a.data[index]), (a,), vjp)

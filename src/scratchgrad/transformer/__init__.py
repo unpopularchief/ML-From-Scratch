@@ -1,8 +1,9 @@
-"""Pre-LN transformer blocks and stacks, built on attention and autograd."""
+"""Pre-LN transformer blocks, stacks, and Tiny GPT built on autograd."""
 
 from scratchgrad.transformer.block import DecoderBlock, EncoderBlock, FeedForward
 from scratchgrad.transformer.decoder import Decoder
 from scratchgrad.transformer.encoder import Encoder
+from scratchgrad.transformer.gpt import TinyGPT
 from scratchgrad.transformer.tokenizer import BPETokenizer, CharTokenizer
 
 __all__ = [
@@ -13,4 +14,5 @@ __all__ = [
     "Encoder",
     "EncoderBlock",
     "FeedForward",
+    "TinyGPT",
 ]
