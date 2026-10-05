@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from scratchgrad.autograd import Tensor, ops
-from scratchgrad.autograd.layers import Dropout, Linear, Module, Sequential
+from scratchgrad.autograd.layers import Dropout, LayerNorm, Linear, Module, Sequential
 from scratchgrad.nn import Dropout as NnDropout
 from scratchgrad.nn import Linear as NnLinear
 
@@ -98,3 +98,21 @@ class TestModuleAndSequential:
         net(Tensor(X)).sum().backward()
         net.zero_grad()
         assert all(p.grad is None for p in net.parameters())
+
+
+class TestLayerNorm:
+    def test_initial_parameters_and_shape(self) -> None:
+        layer = LayerNorm(4)
+        np.testing.assert_array_equal(layer.gamma.data, np.ones(4))
+        np.testing.assert_array_equal(layer.beta.data, np.zeros(4))
+        assert layer(Tensor(rng.standard_normal((2, 3, 4)))).shape == (2, 3, 4)
+        assert len(layer.parameters()) == 2
+
+    def test_parameters_receive_gradients(self) -> None:
+        layer = LayerNorm(3)
+        layer(Tensor(X)).sum().backward()
+        assert all(p.grad is not None for p in layer.parameters())
+
+    def test_nonpositive_features(self) -> None:
+        with pytest.raises(ValueError, match="positive"):
+            LayerNorm(0)

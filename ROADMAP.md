@@ -72,6 +72,6 @@ No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 
 ## M7 — Transformer, capstone (`v1.0.0`)
 
-- [ ] Pre-LN block, encoder, decoder
+- [x] Pre-LN block, encoder, decoder
 - [ ] Char-level tokenizer, then minimal BPE
 - [ ] Tiny GPT trained on tiny-shakespeare + write-up

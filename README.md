@@ -34,7 +34,8 @@ primitive ops with their VJPs, plus Tensor-based functional ops, layers
 and optimizers; a proof test shows an autograd MLP reproduces the
 hand-derived `nn` MLP's gradients and training trajectory. M6 (attention) has
 begun with scaled dot-product attention, causal/padding masks, multi-head attention
-and positional encodings. See the table below,
+and positional encodings; M6 is complete. M7 (transformer) has begun with
+`LayerNorm`, GELU, Pre-LN encoder/decoder blocks and stacks. See the table below,
 [`ROADMAP.md`](ROADMAP.md) for what's planned and in what
 order, and [`plan.md`](plan.md) for the full project plan (architecture,
 testing strategy, conventions, and the mistakes it's deliberately
@@ -124,6 +125,8 @@ what's planned next.
 | Scaled dot-product attention, causal + padding masks | `scratchgrad.attention` | [attention.md](docs/derivations/attention.md) | `softmax(QKᵀ/√d_k + M)V` as a pure composition of Tensor ops (no hand-written backward) on a newly batched `matmul`; boolean causal/padding masks applied as additive constants; gradients match the hand-derived softmax-Jacobian formulas and PyTorch |
 | Multi-head attention | `scratchgrad.attention` | [multi_head_positional.md](docs/derivations/multi_head_positional.md) | `h` heads as a batch axis over column slices of four `d×d` projections, self- or cross-attention, per-head masks; no hand-written backward; matches a per-head loop and `torch.nn.MultiheadAttention` |
 | Positional encodings (sinusoidal, learned) | `scratchgrad.attention` | [multi_head_positional.md](docs/derivations/multi_head_positional.md) | fixed sin/cos table whose shift is a rotation (tested), and a trainable table via a new basic-slice `getitem` op |
+| LayerNorm, GELU | `scratchgrad.autograd` | [transformer_block.md](docs/derivations/transformer_block.md) | per-position normalization and the tanh GELU as pure forward compositions of Tensor ops; the engine's gradient equals the hand-derived closed form and matches PyTorch |
+| Pre-LN encoder / decoder blocks and stacks | `scratchgrad.transformer` | [transformer_block.md](docs/derivations/transformer_block.md) | residual `x + Drop(sublayer(LN(x)))` with an identity gradient path, causal self-attention plus optional cross-attention (`cross_attention=False` is the decoder-only GPT block), final LayerNorm; matches `nn.TransformerEncoderLayer` / `nn.TransformerDecoderLayer` with `norm_first=True` |
 
 ## License
 
