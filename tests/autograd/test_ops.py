@@ -91,8 +91,28 @@ def test_matmul_vjp():
     )
 
 
-def test_matmul_rejects_non_2d():
-    with pytest.raises(ValueError, match="2-D"):
+@pytest.mark.parametrize(
+    "shape_a, shape_b",
+    [
+        ((2, 3, 4), (2, 4, 5)),  # matching batch
+        ((2, 3, 4), (4, 5)),  # shared right operand: grad sums over the batch
+        ((3, 4), (2, 4, 5)),  # shared left operand
+        ((2, 1, 3, 4), (1, 5, 4, 2)),  # batch dims broadcast against each other
+    ],
+)
+def test_batched_matmul_vjp(shape_a, shape_b):
+    check_binary(
+        lambda a, b: a @ b, rng.standard_normal(shape_a), rng.standard_normal(shape_b)
+    )
+
+
+def test_batched_matmul_matches_numpy():
+    a, b = rng.standard_normal((2, 3, 4)), rng.standard_normal((2, 4, 5))
+    np.testing.assert_allclose((Tensor(a) @ Tensor(b)).data, a @ b)
+
+
+def test_matmul_rejects_non_2d_operands():
+    with pytest.raises(ValueError, match="at least 2 dims"):
         Tensor(np.ones(3)) @ Tensor(np.ones((3, 2)))
 
 
