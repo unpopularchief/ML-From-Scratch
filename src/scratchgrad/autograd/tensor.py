@@ -226,6 +226,12 @@ class Tensor:
 
         return ops.matmul(other, self)
 
+    def __getitem__(self, index: Any) -> Tensor:
+        """Return ``self[index]`` for basic (int/slice) indexing."""
+        from scratchgrad.autograd import ops
+
+        return ops.getitem(self, index)
+
     def exp(self) -> Tensor:
         """Elementwise ``e**x``."""
         from scratchgrad.autograd import ops

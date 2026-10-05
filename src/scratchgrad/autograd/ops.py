@@ -181,6 +181,21 @@ def reshape(a: Tensor, shape: tuple[int, ...]) -> Tensor:
     return Tensor._from_op(a.data.reshape(shape), (a,), lambda g: (g.reshape(a.shape),))
 
 
+def getitem(a: Tensor, index: Any) -> Tensor:
+    """Index with ints and slices; the VJP scatters the gradient into zeros.
+
+    Advanced (array) indexing is not supported: it can repeat an element, and
+    the scatter below assigns rather than accumulates.
+    """
+
+    def vjp(g: FloatArray) -> tuple[FloatArray]:
+        grad = np.zeros_like(a.data)
+        grad[index] = g
+        return (grad,)
+
+    return Tensor._from_op(np.array(a.data[index]), (a,), vjp)
+
+
 def transpose(a: Tensor, axes: tuple[int, ...] | None = None) -> Tensor:
     """Permute axes; the VJP applies the inverse permutation."""
     perm = tuple(reversed(range(a.data.ndim))) if axes is None else axes

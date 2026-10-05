@@ -6,6 +6,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Multi-head attention and positional encodings — the second M6 unit.
+  `MultiHeadAttention(d_model, num_heads)` composes four `Linear` projections with
+  the batched `scaled_dot_product_attention` (heads as a batch axis) and returns
+  `(output, per_head_weights)`; `k`/`v` default to `q` for self-attention, so
+  cross-attention works too, and 3-D masks get a head axis automatically.
+  `SinusoidalPositionalEncoding` (and its table function) and
+  `LearnedPositionalEncoding` add a `(T, d_model)` table to the embeddings. Autograd
+  gains basic-slice indexing (`Tensor.__getitem__`, `ops.getitem`) for the learned
+  table. Tested against per-head loops, finite differences, the sinusoidal shift
+  identity and `torch.nn.MultiheadAttention`.
+  Derivation: `docs/derivations/multi_head_positional.md`.
+
 - `scratchgrad.attention` — the first M6 unit: `scaled_dot_product_attention(q, k, v, mask)`
   returns `(output, weights)` as a pure composition of Tensor ops (no hand-written
   backward), with boolean `causal_mask` and `padding_mask`. Masks are applied as an
