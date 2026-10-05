@@ -33,7 +33,8 @@ begun with `scratchgrad.autograd.Tensor`, topological `backward()`, and the
 primitive ops with their VJPs, plus Tensor-based functional ops, layers
 and optimizers; a proof test shows an autograd MLP reproduces the
 hand-derived `nn` MLP's gradients and training trajectory. M6 (attention) has
-begun with scaled dot-product attention and causal/padding masks. See the table below,
+begun with scaled dot-product attention, causal/padding masks, multi-head attention
+and positional encodings. See the table below,
 [`ROADMAP.md`](ROADMAP.md) for what's planned and in what
 order, and [`plan.md`](plan.md) for the full project plan (architecture,
 testing strategy, conventions, and the mistakes it's deliberately
@@ -121,6 +122,8 @@ what's planned next.
 | Tensor | `scratchgrad.autograd` | [autograd.md](docs/derivations/autograd.md) | Reverse-mode autodiff: graph recording, iterative topological `backward()`, per-op vector-Jacobian products, broadcasting un-summation, fan-out accumulation |
 | Linear / Dropout / Sequential, losses, SGD / Adam / AdamW | `scratchgrad.autograd` | [autograd_layers.md](docs/derivations/autograd_layers.md) | Layers and stable losses (softmax, cross-entropy, BCE) as pure forward compositions of Tensor ops with no hand-written backward, matching `nn`'s hand-derived gradients; optimizers over Tensor parameters, AdamW with decoupled weight decay |
 | Scaled dot-product attention, causal + padding masks | `scratchgrad.attention` | [attention.md](docs/derivations/attention.md) | `softmax(QKᵀ/√d_k + M)V` as a pure composition of Tensor ops (no hand-written backward) on a newly batched `matmul`; boolean causal/padding masks applied as additive constants; gradients match the hand-derived softmax-Jacobian formulas and PyTorch |
+| Multi-head attention | `scratchgrad.attention` | [multi_head_positional.md](docs/derivations/multi_head_positional.md) | `h` heads as a batch axis over column slices of four `d×d` projections, self- or cross-attention, per-head masks; no hand-written backward; matches a per-head loop and `torch.nn.MultiheadAttention` |
+| Positional encodings (sinusoidal, learned) | `scratchgrad.attention` | [multi_head_positional.md](docs/derivations/multi_head_positional.md) | fixed sin/cos table whose shift is a rotation (tested), and a trainable table via a new basic-slice `getitem` op |
 
 ## License
 

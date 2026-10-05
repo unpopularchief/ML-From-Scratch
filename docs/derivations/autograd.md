@@ -77,6 +77,7 @@ With $g = \bar y$:
 | mean | $\frac1N \sum a$ | same, divided by $N$ (number of elements reduced) |
 | reshape | | $g$ reshaped back to $a$'s shape |
 | transpose(perm) | | $g$ transposed by the inverse permutation (`argsort(perm)`) |
+| getitem(idx) | $a[\text{idx}]$ | zeros of $a$'s shape with $g$ placed at idx (basic indexing only, see [multi_head_positional.md](multi_head_positional.md) §3) |
 
 `matmul` is exactly `nn.Linear`'s backward ($\bar X = \bar Y W^\top$,
 $\bar W = X^\top \bar Y$); `sum`'s broadcast-back is `Linear`'s

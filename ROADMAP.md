@@ -68,7 +68,7 @@ No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 ## M6 — Attention (`v0.6.0`)
 
 - [x] Scaled dot-product attention, causal + padding masks
-- [ ] Multi-head attention, positional encodings
+- [x] Multi-head attention, positional encodings
 
 ## M7 — Transformer, capstone (`v1.0.0`)
 

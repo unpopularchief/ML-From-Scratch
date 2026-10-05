@@ -116,6 +116,22 @@ def test_matmul_rejects_non_2d_operands():
         Tensor(np.ones(3)) @ Tensor(np.ones((3, 2)))
 
 
+@pytest.mark.parametrize(
+    "index",
+    [np.s_[1:3], np.s_[:, 2], np.s_[1, ::2], np.s_[..., :2], np.s_[0, 1]],
+)
+def test_getitem_vjp_and_matches_numpy(index):
+    x = rng.standard_normal((4, 5))
+    np.testing.assert_array_equal(Tensor(x)[index].data, x[index])
+    check_unary(lambda t: t[index], x)
+
+
+def test_getitem_gradient_is_zero_outside_the_slice():
+    t = Tensor(np.ones((4, 2)), requires_grad=True)
+    t[:2].sum().backward()
+    np.testing.assert_array_equal(t.grad, [[1, 1], [1, 1], [0, 0], [0, 0]])
+
+
 def test_pow_rejects_tensor_exponent():
     with pytest.raises(TypeError):
         Tensor([1.0, 2.0]) ** Tensor(2.0)
