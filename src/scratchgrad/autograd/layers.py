@@ -1,6 +1,7 @@
 r"""Layers on ``Tensor``: no hand-written backward, the engine supplies it.
 
-Full derivation: docs/derivations/autograd_layers.md section 1.
+Full derivations: docs/derivations/autograd_layers.md section 1 and
+docs/derivations/tiny_gpt.md for Embedding.
 """
 
 from __future__ import annotations
@@ -103,6 +104,43 @@ class Linear(Module):
     def parameters(self) -> list[Tensor]:
         """``[W, b]``."""
         return [self.W, self.b]
+
+
+class Embedding(Module):
+    """Look up learned rows for integer token IDs.
+
+    The shared table receives the sum of gradients from every occurrence of
+    each ID through :meth:`Tensor.__getitem__`.
+    """
+
+    def __init__(
+        self, num_embeddings: int, embedding_dim: int, random_state: int | None = None
+    ) -> None:
+        """Initialize the table from a normal distribution with scale 0.02."""
+        if num_embeddings <= 0 or embedding_dim <= 0:
+            raise ValueError("num_embeddings and embedding_dim must be positive")
+        rng = check_random_state(random_state)
+        self.weight = Tensor(
+            0.02 * rng.standard_normal((num_embeddings, embedding_dim)),
+            requires_grad=True,
+        )
+
+    def forward(self, indices: np.ndarray) -> Tensor:  # type: ignore[override]
+        """Return the rows indexed by the integer array ``indices``."""
+        indices = np.asarray(indices)
+        if not np.issubdtype(indices.dtype, np.integer):
+            raise TypeError("embedding indices must be integers")
+        if np.any((indices < 0) | (indices >= self.weight.shape[0])):
+            raise ValueError("embedding index out of range")
+        return self.weight[indices]
+
+    def __call__(self, indices: np.ndarray) -> Tensor:  # type: ignore[override]
+        """Alias for :meth:`forward`."""
+        return self.forward(indices)
+
+    def parameters(self) -> list[Tensor]:
+        """``[weight]``."""
+        return [self.weight]
 
 
 class LayerNorm(Module):

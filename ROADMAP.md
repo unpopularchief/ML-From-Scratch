@@ -74,4 +74,4 @@ No algorithms in this milestone — see `plan.md`'s M0 deliverables section.
 
 - [x] Pre-LN block, encoder, decoder
 - [x] Char-level tokenizer, then minimal BPE
-- [ ] Tiny GPT trained on tiny-shakespeare + write-up
+- [x] Tiny GPT trained on tiny-shakespeare + write-up
