@@ -74,3 +74,18 @@ class TestBPETokenizer:
             tokenizer.decode([1])
         with pytest.raises(TypeError, match="integers"):
             tokenizer.decode([0.5])  # type: ignore[list-item]
+
+
+class TestUnfittedAndTypeErrors:
+    def test_decode_before_fit_raises(self) -> None:
+        for tokenizer in (CharTokenizer(), BPETokenizer()):
+            with pytest.raises(ValueError, match="fit must be called"):
+                tokenizer.decode([0])
+
+    def test_bpe_encode_before_fit_raises(self) -> None:
+        with pytest.raises(ValueError, match="fit must be called"):
+            BPETokenizer().encode("a")
+
+    def test_non_string_text_raises(self) -> None:
+        with pytest.raises(TypeError, match="text must be a string"):
+            CharTokenizer().fit("ab").encode(123)  # type: ignore[arg-type]
