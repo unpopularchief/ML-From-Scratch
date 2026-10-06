@@ -6,7 +6,14 @@ import numpy as np
 import pytest
 
 from scratchgrad.autograd import Tensor, ops
-from scratchgrad.autograd.layers import Dropout, LayerNorm, Linear, Module, Sequential
+from scratchgrad.autograd.layers import (
+    Dropout,
+    Embedding,
+    LayerNorm,
+    Linear,
+    Module,
+    Sequential,
+)
 from scratchgrad.nn import Dropout as NnDropout
 from scratchgrad.nn import Linear as NnLinear
 
@@ -116,3 +123,10 @@ class TestLayerNorm:
     def test_nonpositive_features(self) -> None:
         with pytest.raises(ValueError, match="positive"):
             LayerNorm(0)
+
+
+class TestEmbeddingValidation:
+    @pytest.mark.parametrize("sizes", [(0, 4), (4, 0)])
+    def test_nonpositive_sizes(self, sizes: tuple[int, int]) -> None:
+        with pytest.raises(ValueError, match="positive"):
+            Embedding(*sizes)

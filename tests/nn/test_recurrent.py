@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from scratchgrad.nn import LSTM, RNN, LSTMCell, RNNCell
+from scratchgrad.nn.layers.recurrent import _check_step_input
 from tests.helpers.gradcheck import gradient_check
 
 
@@ -243,3 +244,29 @@ class TestDeterminism:
         layer = cls(3, 4, weight_init="zeros")
         for parameter in layer.parameters():
             np.testing.assert_array_equal(parameter, np.zeros_like(parameter))
+
+
+class TestShapeValidation:
+    def test_step_input_checks(self) -> None:
+        with pytest.raises(ValueError, match=r"x must have shape \(N, 3\)"):
+            _check_step_input(np.zeros((2, 4)), np.zeros((2, 5)), 3, 5)
+        with pytest.raises(ValueError, match="h_prev must have shape"):
+            _check_step_input(np.zeros((2, 3)), np.zeros((2, 4)), 3, 5)
+
+    @pytest.mark.parametrize("cls", [RNNCell, LSTMCell])
+    def test_cell_forward_requires_2d_input(self, cls: type) -> None:
+        with pytest.raises(ValueError, match=r"x must have shape \(N, 3\)"):
+            cls(3, 4).forward(np.zeros((2, 1, 3)))
+
+    @pytest.mark.parametrize("cls", [RNNCell, LSTMCell])
+    def test_cell_backward_checks_grad_h(self, cls: type) -> None:
+        cell = cls(3, 4, random_state=0)
+        cell.forward(np.zeros((2, 3)))
+        with pytest.raises(ValueError, match="grad_h must have shape"):
+            cell.backward(np.zeros((2, 5)))
+
+    def test_lstm_backward_checks_grad_output(self) -> None:
+        lstm = LSTM(3, 4, random_state=0)
+        lstm.forward(np.zeros((2, 5, 3)))
+        with pytest.raises(ValueError, match="grad_output must have shape"):
+            lstm.backward(np.zeros((2, 4, 4)))

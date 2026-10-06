@@ -103,3 +103,19 @@ class TestGradient:
             dx,
             x,
         )
+
+
+class TestValidation:
+    def test_forward_requires_nchw(self) -> None:
+        with pytest.raises(ValueError, match=r"x must have shape \(N, C, H, W\)"):
+            _maxpool2d_forward(np.zeros((4, 4)), (2, 2), (2, 2), (0, 0))
+
+    def test_backward_shape_errors(self) -> None:
+        x = np.arange(16.0).reshape(1, 1, 4, 4)
+        out, argmax = _maxpool2d_forward(x, (2, 2), (2, 2), (0, 0))
+        with pytest.raises(ValueError, match="grad_output must have shape"):
+            _maxpool2d_backward(
+                np.zeros((1, 1, 1, 1)), argmax, x.shape, (2, 2), (2, 2), (0, 0)
+            )
+        with pytest.raises(ValueError, match="argmax must have shape"):
+            _maxpool2d_backward(out, argmax[:, :, :1], x.shape, (2, 2), (2, 2), (0, 0))

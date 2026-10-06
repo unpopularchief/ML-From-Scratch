@@ -54,3 +54,8 @@ def test_tiny_gpt_rejects_non_sequence_input():
     model = TinyGPT(5, 4, 8, 2, 1, 16, random_state=0)
     with pytest.raises(ValueError, match="shape"):
         model(np.array([0, 1, 2]))
+
+
+def test_tiny_gpt_rejects_nonpositive_context_length():
+    with pytest.raises(ValueError, match="context_length"):
+        TinyGPT(5, 0, 8, 2, 1, 16, random_state=0)

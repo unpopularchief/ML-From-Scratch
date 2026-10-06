@@ -144,3 +144,32 @@ class TestDeterminism:
     def test_zeros_initialization(self) -> None:
         layer = Conv2d(2, 3, 3, weight_init="zeros")
         np.testing.assert_array_equal(layer.W, np.zeros((3, 2, 3, 3)))
+
+
+class TestValidation:
+    @pytest.mark.parametrize("value", [(1, 2, 3), (1.5, 2)])
+    def test_bad_pair_raises(self, value: tuple) -> None:
+        with pytest.raises(ValueError, match="kernel_size"):
+            Conv2d(1, 1, value)
+
+    def test_xavier_initialization_is_bounded(self) -> None:
+        layer = Conv2d(2, 3, 3, weight_init="xavier", random_state=0)
+        limit = np.sqrt(6.0 / (2 * 9 + 3 * 9))
+        assert layer.W.shape == (3, 2, 3, 3)
+        assert np.abs(layer.W).max() <= limit
+
+    def test_forward_shape_errors(self) -> None:
+        x, W = np.zeros((1, 2, 4, 4)), np.zeros((3, 2, 2, 2))
+        with pytest.raises(ValueError, match="W must have shape"):
+            _conv2d_forward(x, W[0], None, (1, 1), (0, 0))
+        with pytest.raises(ValueError, match=r"x must have shape \(N, C, H, W\)"):
+            _conv2d_forward(x[0], W, None, (1, 1), (0, 0))
+        with pytest.raises(ValueError, match="b must have shape"):
+            _conv2d_forward(x, W, np.zeros(2), (1, 1), (0, 0))
+
+    def test_backward_shape_errors(self) -> None:
+        x, W = np.zeros((1, 2, 4, 4)), np.zeros((3, 2, 2, 2))
+        with pytest.raises(ValueError, match=r"x must have shape \(N, C, H, W\)"):
+            _conv2d_backward(x[0], W, np.zeros((1, 3, 3, 3)), (1, 1), (0, 0))
+        with pytest.raises(ValueError, match="grad_output must have shape"):
+            _conv2d_backward(x, W, np.zeros((1, 3, 2, 2)), (1, 1), (0, 0))
