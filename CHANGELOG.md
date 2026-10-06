@@ -4,6 +4,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.0] — 2026-10-06
+
 ### Added
 
 - Tiny character GPT trained on tiny Shakespeare. `Embedding` and array-index

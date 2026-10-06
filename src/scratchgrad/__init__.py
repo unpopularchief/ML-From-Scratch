@@ -30,7 +30,7 @@ from scratchgrad.optim import SGD, Adam, Momentum, Nesterov, RMSprop
 from scratchgrad.svm import LinearSVM
 from scratchgrad.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
-__version__ = "0.0.1"
+__version__ = "1.0.0"
 
 __all__ = [
     "AdaBoostClassifier",

@@ -12,7 +12,7 @@ this is for.
 
 ## Status
 
-**M7 complete; `v1.0.0` not yet tagged.** M0 (validation
+**M7 complete; tagged `v1.0.0`.** M0 (validation
 utilities,
 metrics, preprocessing transforms, dataset generators, the
 gradient-checking test tool) and M1 (the classical supervised algorithms —
