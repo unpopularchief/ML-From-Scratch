@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "scratchgrad"
-version = "0.0.1"
+version = "1.0.0"
 description = "Machine learning and deep learning algorithms implemented from first principles in Python and NumPy."
 readme = "README.md"
 license = "MIT"
